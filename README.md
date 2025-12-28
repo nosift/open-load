@@ -1,8 +1,6 @@
-# GPT-Load (Fork)
+# GPT-Load (Custom)
 
-Upstream: https://github.com/tbphp/gpt-load
-
-This fork keeps only the differences from upstream.
+This is a customized fork used for our deployment. Only differences from the original project are listed below.
 
 ## Differences
 
@@ -12,3 +10,27 @@ This fork keeps only the differences from upstream.
 - Model usage stats aggregated from request_logs with success/error/retry counts; empty models filtered.
 - Key management UX polish (view-key modal, layout/scroll fixes, button/input styling).
 - Removed unified OpenAI aggregate proxy; use per-channel/per-group proxy endpoints.
+
+## Deployment (Docker)
+
+```bash
+cp .env.example .env
+# Edit .env and set AUTH_KEY, DATABASE_DSN, REDIS_DSN if needed.
+
+docker build -t gpt-load-custom .
+docker run -d --name gpt-load \
+  -p 3001:3001 \
+  --env-file .env \
+  -v "$(pwd)/data:/app/data" \
+  gpt-load-custom
+```
+
+## Deployment (Source)
+
+```bash
+cp .env.example .env
+# Edit .env and set AUTH_KEY, DATABASE_DSN, REDIS_DSN if needed.
+
+go mod tidy
+make run
+```
