@@ -15,15 +15,15 @@
 
 ```bash
 cp .env.example .env
-# .env を編集し、AUTH_KEY、DATABASE_DSN、REDIS_DSN（必要なら）を設定。
+# .env を編集し、最低でも AUTH_KEY を設定。
 
 docker login ghcr.io
-docker pull ghcr.io/nosift/gpt-load:v1.0.0-custom
+docker pull ghcr.io/nosift/gpt-load:latest
 docker run -d --name gpt-load \
   -p 3001:3001 \
   --env-file .env \
   -v "$(pwd)/data:/app/data" \
-  ghcr.io/nosift/gpt-load:v1.0.0-custom
+  ghcr.io/nosift/gpt-load:latest
 ```
 
 ### ローカルビルド
@@ -37,12 +37,29 @@ docker run -d --name gpt-load \
   gpt-load-custom
 ```
 
-## デプロイ（ソース）
+## 環境変数（主な項目）
+
+- AUTH_KEY：必須、管理 UI と API を保護。
+- ENCRYPTION_KEY：任意、キーを暗号化して保存。
+- DATABASE_DSN：任意、空なら `./data/gpt-load.db`（SQLite）。
+- REDIS_DSN：任意、空ならメモリキャッシュ。
+- TZ：タイムゾーン、既定 `Asia/Shanghai`。
+- PORT / HOST：サーバーバインド。
+- ENABLE_CORS / ALLOWED_ORIGINS / ALLOWED_METHODS / ALLOWED_HEADERS / ALLOW_CREDENTIALS。
+- LOG_LEVEL / LOG_FORMAT / LOG_ENABLE_FILE / LOG_FILE_PATH。
+- MAX_CONCURRENT_REQUESTS。
+
+全項目は `.env.example` を参照。
+
+## デプロイ（ソース、Docker なし）
 
 ```bash
 cp .env.example .env
-# .env を編集し、AUTH_KEY、DATABASE_DSN、REDIS_DSN（必要なら）を設定。
+# .env を編集し、最低でも AUTH_KEY を設定。
 
+# 依存関係：Go 1.24+ toolchain と Node.js 18+。
+cd web && npm install && npm run build
+cd ..
 go mod tidy
-make run
+go run ./main.go
 ```

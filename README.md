@@ -15,15 +15,15 @@ This is a customized fork used for our deployment. Only differences from the ori
 
 ```bash
 cp .env.example .env
-# Edit .env and set AUTH_KEY, DATABASE_DSN, REDIS_DSN if needed.
+# Edit .env and set AUTH_KEY at minimum.
 
 docker login ghcr.io
-docker pull ghcr.io/nosift/gpt-load:v1.0.0-custom
+docker pull ghcr.io/nosift/gpt-load:latest
 docker run -d --name gpt-load \
   -p 3001:3001 \
   --env-file .env \
   -v "$(pwd)/data:/app/data" \
-  ghcr.io/nosift/gpt-load:v1.0.0-custom
+  ghcr.io/nosift/gpt-load:latest
 ```
 
 ### Build Locally
@@ -37,12 +37,29 @@ docker run -d --name gpt-load \
   gpt-load-custom
 ```
 
-## Deployment (Source)
+## Environment Variables (Common)
+
+- AUTH_KEY: required, protects the UI and admin API.
+- ENCRYPTION_KEY: optional, encrypts API keys at rest.
+- DATABASE_DSN: optional, empty = SQLite at `./data/gpt-load.db`.
+- REDIS_DSN: optional, empty = in-memory cache.
+- TZ: timezone, default `Asia/Shanghai`.
+- PORT / HOST: server bind.
+- ENABLE_CORS / ALLOWED_ORIGINS / ALLOWED_METHODS / ALLOWED_HEADERS / ALLOW_CREDENTIALS.
+- LOG_LEVEL / LOG_FORMAT / LOG_ENABLE_FILE / LOG_FILE_PATH.
+- MAX_CONCURRENT_REQUESTS.
+
+Full list: `.env.example`.
+
+## Deployment (Source, no Docker)
 
 ```bash
 cp .env.example .env
-# Edit .env and set AUTH_KEY, DATABASE_DSN, REDIS_DSN if needed.
+# Edit .env and set AUTH_KEY at minimum.
 
+# Prereqs: Go 1.24+ toolchain and Node.js 18+.
+cd web && npm install && npm run build
+cd ..
 go mod tidy
-make run
+go run ./main.go
 ```

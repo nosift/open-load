@@ -15,15 +15,15 @@
 
 ```bash
 cp .env.example .env
-# 编辑 .env，设置 AUTH_KEY、DATABASE_DSN、REDIS_DSN（如需）。
+# 编辑 .env，至少设置 AUTH_KEY。
 
 docker login ghcr.io
-docker pull ghcr.io/nosift/gpt-load:v1.0.0-custom
+docker pull ghcr.io/nosift/gpt-load:latest
 docker run -d --name gpt-load \
   -p 3001:3001 \
   --env-file .env \
   -v "$(pwd)/data:/app/data" \
-  ghcr.io/nosift/gpt-load:v1.0.0-custom
+  ghcr.io/nosift/gpt-load:latest
 ```
 
 ### 本地构建
@@ -37,12 +37,29 @@ docker run -d --name gpt-load \
   gpt-load-custom
 ```
 
-## 部署（源码）
+## 环境变量（常用）
+
+- AUTH_KEY：必填，用于保护管理端与 API。
+- ENCRYPTION_KEY：可选，用于加密保存密钥。
+- DATABASE_DSN：可选，留空则使用 `./data/gpt-load.db`（SQLite）。
+- REDIS_DSN：可选，留空则使用内存缓存。
+- TZ：时区，默认 `Asia/Shanghai`。
+- PORT / HOST：服务绑定地址。
+- ENABLE_CORS / ALLOWED_ORIGINS / ALLOWED_METHODS / ALLOWED_HEADERS / ALLOW_CREDENTIALS。
+- LOG_LEVEL / LOG_FORMAT / LOG_ENABLE_FILE / LOG_FILE_PATH。
+- MAX_CONCURRENT_REQUESTS。
+
+完整列表见：`.env.example`。
+
+## 部署（源码，无 Docker）
 
 ```bash
 cp .env.example .env
-# 编辑 .env，设置 AUTH_KEY、DATABASE_DSN、REDIS_DSN（如需）。
+# 编辑 .env，至少设置 AUTH_KEY。
 
+# 依赖：Go 1.24+ toolchain 与 Node.js 18+。
+cd web && npm install && npm run build
+cd ..
 go mod tidy
-make run
+go run ./main.go
 ```

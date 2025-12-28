@@ -16,6 +16,8 @@
 - 模型统计数据改为基于 request_logs 聚合，补充成功/错误/重试统计字段。
 - 模型统计模型列表过滤空 model，避免“未知模型”噪声。
 - 移除统一聚合 OpenAI 接口（/proxy/all），恢复按渠道/分组单独访问。
+- 新增 GHCR 镜像发布工作流（.github/workflows/publish-image.yml），tag `v*` 自动构建，并支持手动触发输入 tag。
+- GHCR 发布工作流新增 main 分支自动构建 latest，并补充 README 的环境变量与源码部署说明。
 
 ## 备注
 - 模型使用统计基于 request_logs（仅 final 请求，排除 aggregate 分组）。
