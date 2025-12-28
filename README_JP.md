@@ -17,6 +17,18 @@
 cp .env.example .env
 # .env を編集し、AUTH_KEY、DATABASE_DSN、REDIS_DSN（必要なら）を設定。
 
+docker login ghcr.io
+docker pull ghcr.io/nosift/gpt-load:v1.0.0-custom
+docker run -d --name gpt-load \
+  -p 3001:3001 \
+  --env-file .env \
+  -v "$(pwd)/data:/app/data" \
+  ghcr.io/nosift/gpt-load:v1.0.0-custom
+```
+
+### ローカルビルド
+
+```bash
 docker build -t gpt-load-custom .
 docker run -d --name gpt-load \
   -p 3001:3001 \

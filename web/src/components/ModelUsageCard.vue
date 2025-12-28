@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DashboardStatsResponse, ModelUsageItem } from "@/types/models";
 import { getModelBadge } from "@/utils/model-badge";
-import { NButton, NButtonGroup, NCard, NEmpty } from "naive-ui";
+import { NCard, NEmpty } from "naive-ui";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 

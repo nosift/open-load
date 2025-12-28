@@ -10,11 +10,15 @@ RUN VITE_VERSION=${VERSION} npm run build
 FROM golang:alpine AS builder2
 
 ARG VERSION=1.0.0
+ARG GOPROXY=https://proxy.golang.org,direct
 ENV GO111MODULE=on \
     CGO_ENABLED=0 \
-    GOOS=linux
+    GOOS=linux \
+    GOPROXY=${GOPROXY}
 
 WORKDIR /build
+
+RUN apk add --no-cache git
 
 ADD go.mod go.sum ./
 RUN go mod download

@@ -17,6 +17,18 @@ This is a customized fork used for our deployment. Only differences from the ori
 cp .env.example .env
 # Edit .env and set AUTH_KEY, DATABASE_DSN, REDIS_DSN if needed.
 
+docker login ghcr.io
+docker pull ghcr.io/nosift/gpt-load:v1.0.0-custom
+docker run -d --name gpt-load \
+  -p 3001:3001 \
+  --env-file .env \
+  -v "$(pwd)/data:/app/data" \
+  ghcr.io/nosift/gpt-load:v1.0.0-custom
+```
+
+### Build Locally
+
+```bash
 docker build -t gpt-load-custom .
 docker run -d --name gpt-load \
   -p 3001:3001 \
