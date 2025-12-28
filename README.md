@@ -38,6 +38,14 @@ docker compose pull
 docker compose up -d
 ```
 
+## Release a Stable Version (Tag)
+
+```bash
+# After committing changes on main:
+git tag v1.0.1-custom
+git push origin v1.0.1-custom
+```
+
 ### Build Locally
 
 ```bash

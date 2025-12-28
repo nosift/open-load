@@ -38,6 +38,14 @@ docker compose pull
 docker compose up -d
 ```
 
+## 发布稳定版本（打 Tag）
+
+```bash
+# main 上提交改动后：
+git tag v1.0.1-custom
+git push origin v1.0.1-custom
+```
+
 ### 本地构建
 
 ```bash

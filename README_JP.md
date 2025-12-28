@@ -38,6 +38,14 @@ docker compose pull
 docker compose up -d
 ```
 
+## 安定版のリリース（Tag）
+
+```bash
+# main にコミット後：
+git tag v1.0.1-custom
+git push origin v1.0.1-custom
+```
+
 ### ローカルビルド
 
 ```bash

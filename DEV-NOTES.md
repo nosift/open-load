@@ -19,6 +19,7 @@
 - 新增 GHCR 镜像发布工作流（.github/workflows/publish-image.yml），tag `v*` 自动构建，并支持手动触发输入 tag。
 - GHCR 发布工作流新增 main 分支自动构建 latest，并补充 README 的环境变量与源码部署说明。
 - 文档补充镜像版本策略（latest 自动更新、vX.Y.Z-custom 稳定版本）与更新命令。
+- 文档补充发布稳定版本的 tag 操作步骤。
 
 ## 备注
 - 模型使用统计基于 request_logs（仅 final 请求，排除 aggregate 分组）。
