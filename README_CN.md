@@ -26,6 +26,18 @@ docker run -d --name gpt-load \
   ghcr.io/nosift/gpt-load:latest
 ```
 
+## 镜像标签与更新策略
+
+- `latest`：每次 `main` 分支更新都会自动构建（持续更新）。
+- `vX.Y.Z-custom`：推送对应 tag（如 `v1.0.1-custom`）时构建（稳定版本）。
+
+更新已运行服务：
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
 ### 本地构建
 
 ```bash

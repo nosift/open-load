@@ -26,6 +26,18 @@ docker run -d --name gpt-load \
   ghcr.io/nosift/gpt-load:latest
 ```
 
+## Image Tags & Update Policy
+
+- `latest`: built automatically on every push to `main` (continuous updates).
+- `vX.Y.Z-custom`: built when a git tag like `v1.0.1-custom` is pushed (stable versions).
+
+Update a running service:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
 ### Build Locally
 
 ```bash

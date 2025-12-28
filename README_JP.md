@@ -26,6 +26,18 @@ docker run -d --name gpt-load \
   ghcr.io/nosift/gpt-load:latest
 ```
 
+## イメージタグと更新方針
+
+- `latest`：`main` への push ごとに自動ビルド（継続更新）。
+- `vX.Y.Z-custom`：`v1.0.1-custom` のような tag push でビルド（安定版）。
+
+稼働中サービスの更新：
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
 ### ローカルビルド
 
 ```bash
