@@ -173,13 +173,13 @@ function handleGroupCreated(group: Group) {
 
       <!-- 添加分组按钮 -->
       <div class="add-section">
-        <n-button type="success" size="small" block @click="openCreateGroupModal">
+        <n-button class="action-btn-custom success" size="small" block @click="openCreateGroupModal">
           <template #icon>
             <n-icon :component="Add" />
           </template>
           {{ t("keys.createGroup") }}
         </n-button>
-        <n-button type="info" size="small" block @click="openCreateAggregateGroupModal">
+        <n-button class="action-btn-custom info" size="small" block @click="openCreateAggregateGroupModal">
           <template #icon>
             <n-icon :component="LinkOutline" />
           </template>
@@ -214,22 +214,28 @@ function handleGroupCreated(group: Group) {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--card-bg-solid);
+  background: var(--sidebar-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(16px);
 }
 
 .group-list-card:hover {
   transform: none;
-  box-shadow: var(--shadow-lg);
+  box-shadow: none;
 }
 
 .search-section {
-  height: 41px;
+  height: 44px;
+  padding: 0 10px;
 }
 
 .groups-section {
   flex: 1;
   height: calc(100% - 120px);
   overflow: auto;
+  padding: 0 10px;
 }
 
 .empty-container {
@@ -249,80 +255,67 @@ function handleGroupCreated(group: Group) {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px;
-  border-radius: 6px;
+  padding: 10px 12px;
+  border-radius: var(--border-radius-md);
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid var(--border-color);
-  font-size: 12px;
-  color: var(--text-primary);
+  border: 1px solid transparent; /* 默认无边框 */
+  font-size: 13px;
+  color: var(--text-secondary);
   background: transparent;
   box-sizing: border-box;
   position: relative;
 }
 
-/* 聚合分组样式 */
+/* 聚合分组样式 - 简化 */
 .group-item.aggregate {
-  border-style: dashed;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, rgba(102, 126, 234, 0.05) 100%);
+  border-style: none;
+  background: transparent;
 }
 
 :root.dark .group-item.aggregate {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(102, 126, 234, 0.1) 100%);
-  border-color: rgba(102, 126, 234, 0.2);
+  background: transparent;
+  border-color: transparent;
 }
 
 .group-item:hover,
 .group-item.aggregate:hover {
-  background: var(--bg-tertiary);
-  border-color: var(--primary-color);
-}
-
-.group-item.aggregate:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(102, 126, 234, 0.1) 100%);
-  border-style: dashed;
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  border-color: transparent;
+  box-shadow: var(--shadow-sm);
 }
 
 :root.dark .group-item:hover {
-  background: rgba(102, 126, 234, 0.1);
-  border-color: rgba(102, 126, 234, 0.3);
-}
-
-:root.dark .group-item.aggregate:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(102, 126, 234, 0.15) 100%);
-  border-color: rgba(102, 126, 234, 0.4);
-}
-
-.group-item.aggregate.active {
-  background: var(--primary-gradient);
-  border-style: solid;
+  background: var(--hover-bg);
 }
 
 .group-item.active,
 :root.dark .group-item.active,
 :root.dark .group-item.aggregate.active {
-  background: var(--primary-gradient);
-  color: white;
-  border-color: transparent;
-  box-shadow: var(--shadow-md);
-  border-style: solid;
+  background: var(--card-bg-solid);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  font-weight: 500;
 }
 
 .group-icon {
-  font-size: 16px;
-  width: 28px;
-  height: 28px;
+  font-size: 14px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-secondary);
+  background: var(--bg-tertiary);
   border-radius: 6px;
   flex-shrink: 0;
   box-sizing: border-box;
+  color: var(--text-tertiary); /* 图标颜色变淡 */
 }
 
 .group-item.active .group-icon {
-  background: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary); /* 选中时加深 */
 }
 
 .group-content {
@@ -331,10 +324,10 @@ function handleGroupCreated(group: Group) {
 }
 
 .group-name {
-  font-weight: 600;
+  font-weight: 500;
   font-size: 14px;
   line-height: 1.2;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -343,24 +336,25 @@ function handleGroupCreated(group: Group) {
 .group-meta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   font-size: 10px;
   flex-wrap: wrap;
 }
 
 .group-id {
+  opacity: 0.6;
+  color: var(--text-tertiary);
+  font-size: 10px;
+}
+
+.group-item.active .group-id {
   opacity: 0.8;
   color: var(--text-secondary);
 }
 
-.group-item.active .group-id {
-  opacity: 0.9;
-  color: white;
-}
-
 .add-section {
   border-top: 1px solid var(--border-color);
-  padding-top: 12px;
+  padding: 12px 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -386,29 +380,72 @@ function handleGroupCreated(group: Group) {
 
 /* 暗黑模式特殊样式 */
 :root.dark .group-item {
-  border-color: rgba(255, 255, 255, 0.05);
+  border-color: transparent;
 }
 
 :root.dark .group-icon {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  border: none;
 }
 
 :root.dark .search-section :deep(.n-input) {
-  --n-border: 1px solid rgba(255, 255, 255, 0.08);
-  --n-border-hover: 1px solid rgba(102, 126, 234, 0.4);
+  --n-border: 1px solid var(--border-color);
+  --n-border-hover: 1px solid var(--border-hover);
   --n-border-focus: 1px solid var(--primary-color);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-/* 标签样式优化 */
+/* 标签样式优化 - 极简 */
 :root.dark .group-meta :deep(.n-tag) {
-  background: rgba(102, 126, 234, 0.15);
-  border: 1px solid rgba(102, 126, 234, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
 }
 
 :root.dark .group-item.active .group-meta :deep(.n-tag) {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* 自定义操作按钮样式 */
+.action-btn-custom {
+  font-weight: 500;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  background: var(--card-bg-solid);
+  transition: all 0.2s ease;
+  box-shadow: none;
+}
+
+:root.dark .action-btn-custom {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* 主要操作按钮 (蓝色) */
+.action-btn-custom.success,
+.action-btn-custom.info {
+  background-color: var(--primary-soft-bg) !important;
+  color: var(--primary-soft-text) !important;
+  border-color: var(--primary-soft-border) !important;
+}
+
+.action-btn-custom.success:hover,
+.action-btn-custom.info:hover {
+  background-color: var(--primary-soft-bg-hover) !important;
+  border-color: var(--primary-soft-border-hover) !important;
+}
+
+:root.dark .action-btn-custom.success,
+:root.dark .action-btn-custom.info {
+  background-color: var(--primary-soft-bg) !important;
+  border-color: var(--primary-soft-border) !important;
+  color: var(--primary-soft-text) !important;
+}
+
+:deep(.action-btn-custom .n-button__state-border),
+:deep(.action-btn-custom .n-button__border) {
+  box-shadow: none !important;
+  border: none !important;
 }
 </style>

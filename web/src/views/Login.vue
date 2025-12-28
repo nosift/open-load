@@ -1,260 +1,233 @@
 <script setup lang="ts">
+import { useAuthService } from "@/services/auth";
+import { LockClosedOutline } from "@vicons/ionicons5";
+import { NButton, NCard, NForm, NFormItem, NIcon, NInput } from "naive-ui";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 import AppFooter from "@/components/AppFooter.vue";
 import LanguageSelector from "@/components/LanguageSelector.vue";
-import { useAuthService } from "@/services/auth";
-import { LockClosedSharp } from "@vicons/ionicons5";
-import { NButton, NCard, NInput, NSpace, NIcon, useMessage } from "naive-ui";
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-import { useI18n } from "vue-i18n";
+import ThemeToggle from "@/components/ThemeToggle.vue";
+
+const { t } = useI18n();
+const router = useRouter();
+const { login } = useAuthService();
 
 const authKey = ref("");
 const loading = ref(false);
-const router = useRouter();
-const message = useMessage();
-const { login } = useAuthService();
-const { t } = useI18n();
 
-const handleLogin = async () => {
+async function handleLogin() {
   if (!authKey.value) {
-    message.error(t("login.authKeyRequired"));
     return;
   }
+
   loading.value = true;
-  const success = await login(authKey.value);
-  loading.value = false;
-  if (success) {
-    router.push("/");
+  try {
+    const success = await login(authKey.value);
+    if (success) {
+      window.$message?.success(t("login.loginSuccess"));
+      router.push({ name: "dashboard" });
+    } else {
+      window.$message?.error(t("login.invalidKey"));
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+    window.$message?.error(t("common.error"));
+  } finally {
+    loading.value = false;
   }
-};
+}
 </script>
 
 <template>
   <div class="login-container">
-    <!-- 语言切换器 -->
-    <div class="language-selector-wrapper">
-      <language-selector />
-    </div>
-    <div class="login-background">
-      <div class="login-decoration" />
-      <div class="login-decoration-2" />
+    <div class="login-header">
+      <div class="logo-area">
+        <h1 class="title">
+          <span class="brand-prefix">GPT</span>
+          <span class="brand-suffix">Load</span>
+        </h1>
+      </div>
+      <div class="actions">
+        <language-selector />
+        <theme-toggle />
+      </div>
     </div>
 
     <div class="login-content">
-      <div class="login-header">
-        <h1 class="login-title">{{ t("login.title") }}</h1>
-        <p class="login-subtitle">{{ t("login.subtitle") }}</p>
-      </div>
-
-      <n-card class="login-card modern-card" :bordered="false">
-        <template #header>
+      <div class="login-spotlight" aria-hidden="true"></div>
+      <div class="login-card-wrapper">
+        <n-card :bordered="true" class="login-card" size="large">
           <div class="card-header">
-            <h2 class="card-title">{{ t("login.welcome") }}</h2>
-            <p class="card-subtitle">{{ t("login.welcomeDesc") }}</p>
+            <h2>{{ t("login.welcome") }}</h2>
+            <p class="subtitle">{{ t("login.welcomeDesc") }}</p>
           </div>
-        </template>
 
-        <n-space vertical size="large">
-          <n-input
-            v-model:value="authKey"
-            type="password"
-            size="large"
-            :placeholder="t('login.authKeyPlaceholder')"
-            class="modern-input"
-            @keyup.enter="handleLogin"
-          >
-            <template #prefix>
-              <n-icon :component="LockClosedSharp" />
-            </template>
-          </n-input>
-
-          <n-button
-            class="login-btn modern-button"
-            type="primary"
-            size="large"
-            block
-            @click="handleLogin"
-            :loading="loading"
-            :disabled="loading"
-          >
-            <template v-if="!loading">
-              <span>{{ t("login.loginButton") }}</span>
-            </template>
-          </n-button>
-        </n-space>
-      </n-card>
+          <n-form @submit.prevent="handleLogin">
+            <n-form-item>
+              <n-input
+                v-model:value="authKey"
+                type="password"
+                show-password-on="click"
+                :placeholder="t('login.authKeyPlaceholder')"
+                :loading="loading"
+                @keydown.enter.prevent="handleLogin"
+                size="large"
+              >
+                <template #prefix>
+                  <n-icon :component="LockClosedOutline" />
+                </template>
+              </n-input>
+            </n-form-item>
+            
+            <n-button
+              type="primary"
+              block
+              size="large"
+              :loading="loading"
+              :disabled="!authKey"
+              @click="handleLogin"
+              class="login-button"
+            >
+              {{ t("login.loginButton") }}
+            </n-button>
+          </n-form>
+        </n-card>
+      </div>
     </div>
+    
+    <app-footer />
   </div>
-  <app-footer />
 </template>
 
 <style scoped>
-.language-selector-wrapper {
-  position: absolute;
-  top: 24px;
-  right: 24px;
-  z-index: 10;
-}
-
 .login-container {
-  min-height: calc(100vh - 52px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-  padding: 24px;
-}
-
-.login-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+  min-height: 100vh;
   height: 100%;
-  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-gradient);
+  overflow-y: auto;
 }
 
-.login-decoration {
+.login-header {
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+  backdrop-filter: saturate(180%) blur(18px);
+  box-shadow: var(--shadow-sm);
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.02em;
+  position: relative;
+  padding-bottom: 6px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.brand-prefix {
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.brand-suffix {
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.title::after {
+  content: "";
   position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 800px;
-  height: 800px;
-  background: var(--primary-gradient);
-  border-radius: 50%;
-  opacity: 0.1;
-  animation: float 6s ease-in-out infinite;
+  left: 0;
+  right: -18px;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary-color), transparent);
+  border-radius: 999px;
+  opacity: 0.85;
 }
 
-.login-decoration-2 {
-  position: absolute;
-  bottom: -50%;
-  left: -20%;
-  width: 600px;
-  height: 600px;
-  background: var(--secondary-gradient);
-  border-radius: 50%;
-  opacity: 0.08;
-  animation: float 8s ease-in-out infinite reverse;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-20px) rotate(5deg);
-  }
+.actions {
+  display: flex;
+  gap: 12px;
 }
 
 .login-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-spotlight {
+  position: absolute;
+  width: 720px;
+  height: 720px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.8), transparent 65%),
+    radial-gradient(circle at 30% 30%, rgba(0, 113, 227, 0.12), transparent 60%);
+  top: -240px;
+  right: -140px;
+  filter: blur(12px);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.login-card-wrapper {
   position: relative;
   z-index: 1;
   width: 100%;
   max-width: 420px;
-  padding: 0 20px;
-}
-
-.login-header {
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.login-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 8px;
-  letter-spacing: -0.5px;
-}
-
-.login-subtitle {
-  font-size: 1.1rem;
-  color: var(--text-secondary);
-  margin: 0;
-  font-weight: 500;
 }
 
 .login-card {
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border-color-light);
+  /* 移除 Naive UI 默认的边框，使用我们自定义的更细腻的边框 */
+  /* 这里依赖全局变量的覆盖，但也可以强制指定 */
+  box-shadow: var(--shadow-md);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  backdrop-filter: blur(16px);
 }
 
 .card-header {
   text-align: center;
-  padding-bottom: 8px;
+  margin-bottom: 28px;
 }
 
-.card-title {
+.card-header h2 {
   font-size: 1.5rem;
   font-weight: 600;
+  margin: 0 0 8px;
   color: var(--text-primary);
-  margin: 0 0 8px 0;
 }
 
-.card-subtitle {
-  font-size: 0.95rem;
+.subtitle {
   color: var(--text-secondary);
+  font-size: 0.875rem;
   margin: 0;
 }
 
-.login-btn {
-  background: var(--primary-gradient);
-  border: none;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  height: 48px;
-  font-size: 1rem;
-}
-
-.login-btn:hover {
-  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-:deep(.n-input) {
-  --n-border-radius: 12px;
-  --n-height: 48px;
-}
-
-:deep(.n-input__input-el) {
-  font-size: 1rem;
-}
-
-:deep(.n-input__prefix) {
-  color: var(--text-secondary);
-}
-
-:deep(.n-card-header) {
-  padding-bottom: 16px;
-}
-
-:deep(.n-card__content) {
-  padding-top: 0;
-}
-
-/* 暗黑模式适配 */
-:root.dark .login-decoration {
-  opacity: 0.05;
-}
-
-:root.dark .login-decoration-2 {
-  opacity: 0.03;
-}
-
-:root.dark .login-card {
-  background: var(--card-bg-solid);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-:root.dark .login-btn:hover {
-  background: linear-gradient(135deg, #7c8aac 0%, #8b94c0 100%);
-  box-shadow: 0 8px 25px rgba(139, 157, 245, 0.2);
+.login-button {
+  font-weight: 500;
 }
 </style>

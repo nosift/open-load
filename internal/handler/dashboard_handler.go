@@ -88,6 +88,49 @@ func (s *Server) Stats(c *gin.Context) {
 		errorRateTrendIsGrowth = true
 	}
 
+	const modelUsageLimit = 6
+	modelUsageStart := twentyFourHoursAgo
+	modelUsageEnd := now
+	modelUsage7dStart := now.Add(-7 * 24 * time.Hour)
+
+	tz := c.DefaultQuery("tz", "Asia/Shanghai")
+	loc, err := time.LoadLocation(tz)
+	if err != nil {
+		loc = time.Local
+	}
+
+	startStr := c.Query("start")
+	endStr := c.Query("end")
+	if startStr != "" && endStr != "" {
+		startDate, startErr := time.ParseInLocation("2006-01-02", startStr, loc)
+		endDate, endErr := time.ParseInLocation("2006-01-02", endStr, loc)
+		if startErr == nil && endErr == nil {
+			if endDate.Before(startDate) {
+				startDate, endDate = endDate, startDate
+			}
+			modelUsageStart = startDate
+			modelUsageEnd = endDate.Add(24 * time.Hour)
+			modelUsage7dStart = modelUsageEnd.Add(-7 * 24 * time.Hour)
+		}
+	} else if dateStr := c.Query("date"); dateStr != "" {
+		if dayStart, err := time.ParseInLocation("2006-01-02", dateStr, loc); err == nil {
+			modelUsageStart = dayStart
+			modelUsageEnd = dayStart.Add(24 * time.Hour)
+			modelUsage7dStart = modelUsageEnd.Add(-7 * 24 * time.Hour)
+		}
+	}
+
+	modelUsage24h, err := s.getModelUsageStats(modelUsageStart, modelUsageEnd, modelUsageLimit)
+	if err != nil {
+		response.ErrorI18nFromAPIError(c, app_errors.ErrDatabase, "database.model_usage_failed")
+		return
+	}
+	modelUsage7d, err := s.getModelUsageStats(modelUsage7dStart, modelUsageEnd, modelUsageLimit)
+	if err != nil {
+		response.ErrorI18nFromAPIError(c, app_errors.ErrDatabase, "database.model_usage_failed")
+		return
+	}
+
 	// 获取安全警告信息
 	securityWarnings := s.getSecurityWarnings(c)
 
@@ -109,6 +152,8 @@ func (s *Server) Stats(c *gin.Context) {
 			TrendIsGrowth: errorRateTrendIsGrowth,
 		},
 		SecurityWarnings: securityWarnings,
+		ModelUsage24h:    modelUsage24h,
+		ModelUsage7d:     modelUsage7d,
 	}
 
 	response.Success(c, stats)
@@ -195,6 +240,33 @@ func (s *Server) getHourlyStats(startTime, endTime time.Time) (hourlyStatResult,
 		Select("COALESCE(SUM(success_count), 0) + COALESCE(SUM(failure_count), 0) as total_requests, COALESCE(SUM(failure_count), 0) as total_failures").
 		Scan(&result).Error
 	return result, err
+}
+
+func (s *Server) getModelUsageStats(startTime, endTime time.Time, limit int) ([]models.ModelUsageItem, error) {
+	var result []models.ModelUsageItem
+	query := s.DB.Model(&models.RequestLog{}).
+		Select(`
+			model,
+			SUM(CASE WHEN request_type = ? THEN 1 ELSE 0 END) as request_count,
+			SUM(CASE WHEN request_type = ? AND is_success = 1 THEN 1 ELSE 0 END) as success_count,
+			SUM(CASE WHEN request_type = ? AND is_success = 0 THEN 1 ELSE 0 END) as failure_count,
+			SUM(CASE WHEN request_type = ? THEN 1 ELSE 0 END) as retry_count
+		`, models.RequestTypeFinal, models.RequestTypeFinal, models.RequestTypeFinal, models.RequestTypeRetry).
+		Where("timestamp >= ? AND timestamp < ?", startTime, endTime).
+		Where("model IS NOT NULL AND model <> ''").
+		Group("model").
+		Order("request_count desc").
+		Where("group_id NOT IN (?)",
+			s.DB.Table("groups").Select("id").Where("group_type = ?", "aggregate"))
+
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	if err := query.Scan(&result).Error; err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 type rpmStatResult struct {

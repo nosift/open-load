@@ -60,6 +60,7 @@ var MessagesEnUS = map[string]string{
 	"validation.group_id_required":       "group_id query parameter is required",
 	"validation.invalid_group_id_format": "Invalid group_id format",
 	"validation.keys_text_empty":         "Keys text cannot be empty",
+	"validation.invalid_recent_minutes":  "Invalid recent_minutes value",
 	"validation.invalid_group_type":      "Invalid group type, must be 'standard' or 'aggregate'",
 	"validation.sub_groups_required":     "Aggregate group must contain at least one sub-group",
 	"validation.invalid_sub_group_id":    "Invalid sub-group ID",
@@ -103,6 +104,7 @@ var MessagesEnUS = map[string]string{
 	"database.current_stats_failed":  "Failed to get current period statistics",
 	"database.previous_stats_failed": "Failed to get previous period statistics",
 	"database.chart_data_failed":     "Failed to get chart data",
+	"database.model_usage_failed":    "Failed to get model usage statistics",
 	"database.group_stats_failed":    "Failed to get partial statistics",
 
 	// Success messages

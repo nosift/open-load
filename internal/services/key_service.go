@@ -9,6 +9,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -290,7 +291,12 @@ func (s *KeyService) DeleteMultipleKeys(groupID uint, keysText string) (*DeleteK
 }
 
 // ListKeysInGroupQuery builds a query to list all keys within a specific group, filtered by status.
-func (s *KeyService) ListKeysInGroupQuery(groupID uint, statusFilter string, searchHash string) *gorm.DB {
+func (s *KeyService) ListKeysInGroupQuery(
+	groupID uint,
+	statusFilter string,
+	searchHash string,
+	createdAfter *time.Time,
+) *gorm.DB {
 	query := s.DB.Model(&models.APIKey{}).Where("group_id = ?", groupID)
 
 	if statusFilter != "" {
@@ -299,6 +305,10 @@ func (s *KeyService) ListKeysInGroupQuery(groupID uint, statusFilter string, sea
 
 	if searchHash != "" {
 		query = query.Where("key_hash = ?", searchHash)
+	}
+
+	if createdAfter != nil {
+		query = query.Where("created_at >= ?", *createdAfter)
 	}
 
 	query = query.Order("last_used_at desc, updated_at desc")

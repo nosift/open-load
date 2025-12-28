@@ -122,9 +122,11 @@ function handleNavigateToGroup(groupId: number) {
 </script>
 
 <template>
-  <div>
+  <div class="keys-layout">
     <!-- 加密配置错误警告 -->
-    <encryption-mismatch-alert style="margin-bottom: 16px" />
+    <div v-if="false" class="alert-container">
+      <encryption-mismatch-alert />
+    </div>
 
     <div class="keys-container">
       <div class="sidebar">
@@ -138,9 +140,9 @@ function handleNavigateToGroup(groupId: number) {
         />
       </div>
 
-      <!-- 右侧主内容区域，占80% -->
+      <!-- 右侧主内容区域 -->
       <div class="main-content">
-        <!-- 分组信息卡片，更紧凑 -->
+        <!-- 分组信息卡片 -->
         <div class="group-info">
           <group-info-card
             :group="selectedGroup"
@@ -178,11 +180,21 @@ function handleNavigateToGroup(groupId: number) {
 </template>
 
 <style scoped>
+.keys-layout {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.alert-container {
+  margin-bottom: 16px;
+}
+
 .keys-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 100%;
+  gap: 24px;
+  height: 100%;
 }
 
 .sidebar {
@@ -194,7 +206,8 @@ function handleNavigateToGroup(groupId: number) {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 24px;
+  min-width: 0; /* 防止内容溢出 */
 }
 
 .group-info {
@@ -206,16 +219,19 @@ function handleNavigateToGroup(groupId: number) {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  /* 移除背景和阴影，让表格自然融入 */
 }
 
 @media (min-width: 768px) {
   .keys-container {
     flex-direction: row;
+    align-items: flex-start;
   }
 
   .sidebar {
-    width: 240px;
-    height: calc(100vh - 159px);
+    width: 260px; /* 稍微加宽侧边栏 */
+    position: sticky;
+    top: 96px; /* Header height + padding */
   }
 }
 </style>

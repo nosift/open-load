@@ -93,7 +93,10 @@ onMounted(() => {
       <div class="footer-main">
         <span class="project-info">
           <a href="https://github.com/tbphp/gpt-load" target="_blank" rel="noopener noreferrer">
-            <b>GPT-Load</b>
+            <span class="footer-brand">
+              <span class="brand-prefix">GPT</span>
+              <span class="brand-suffix">Load</span>
+            </span>
           </a>
         </span>
 
@@ -238,6 +241,7 @@ onMounted(() => {
   padding: 12px 24px;
   font-size: 14px;
   min-height: 52px;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.04);
 }
 
 .footer-container {
@@ -268,6 +272,38 @@ onMounted(() => {
   text-decoration: underline;
 }
 
+.footer-brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  letter-spacing: -0.01em;
+  position: relative;
+  padding-bottom: 4px;
+}
+
+.footer-brand::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: -10px;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, currentColor, transparent);
+  opacity: 0.7;
+  border-radius: 999px;
+}
+
+.footer-brand .brand-prefix {
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.footer-brand .brand-suffix {
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
 /* 版本信息区域 */
 .version-container {
   display: flex;
@@ -295,7 +331,7 @@ onMounted(() => {
 }
 
 .version-clickable:hover {
-  background: rgba(240, 160, 32, 0.1);
+  background: var(--warning-bg);
   transform: translateY(-1px);
 }
 
@@ -324,8 +360,8 @@ onMounted(() => {
 }
 
 .footer-link:hover {
-  color: var(--primary-color, #18a058);
-  background: rgba(24, 160, 88, 0.1);
+  color: var(--primary-color);
+  background: var(--primary-color-suppl);
   transform: translateY(-1px);
 }
 

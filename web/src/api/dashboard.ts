@@ -4,8 +4,15 @@ import http from "@/utils/http";
 /**
  * 获取仪表盘基础统计数据
  */
-export const getDashboardStats = () => {
-  return http.get<DashboardStatsResponse>("/dashboard/stats");
+export const getDashboardStats = (params?: {
+  date?: string;
+  start?: string;
+  end?: string;
+  tz?: string;
+}) => {
+  return http.get<DashboardStatsResponse>("/dashboard/stats", {
+    params,
+  });
 };
 
 /**

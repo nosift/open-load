@@ -3,6 +3,7 @@ import { logApi } from "@/api/logs";
 import type { LogFilter, RequestLog } from "@/types/models";
 import { copy } from "@/utils/clipboard";
 import { maskKey } from "@/utils/display";
+import { getModelBadge } from "@/utils/model-badge";
 import {
   CheckmarkDoneOutline,
   CloseCircleOutline,
@@ -296,6 +297,17 @@ const allColumnConfigs: ColumnConfig[] = [
     width: 240,
     defaultVisible: true,
     required: true, // 必选字段
+    render: (row: LogRow) => {
+      const badge = getModelBadge(row.model, t("logs.model"));
+      return h("div", { class: "model-cell" }, [
+        h("span", { class: ["model-badge", badge.className], title: badge.label }, badge.short),
+        h(
+          NEllipsis,
+          { style: "max-width: 180px" },
+          { default: () => row.model || "-" }
+        ),
+      ]);
+    },
   },
   {
     key: "key_value",
@@ -759,7 +771,15 @@ const deselectAllColumns = () => {
               </div>
               <div class="detail-item-compact">
                 <span class="detail-label-compact">{{ t("logs.model") }}:</span>
-                <span class="detail-value-compact">{{ selectedLog.model }}</span>
+                <span class="detail-value-compact model-detail">
+                  <span
+                    :class="['model-badge', getModelBadge(selectedLog.model, t('logs.model')).className]"
+                    :title="getModelBadge(selectedLog.model, t('logs.model')).label"
+                  >
+                    {{ getModelBadge(selectedLog.model, t('logs.model')).short }}
+                  </span>
+                  <span class="model-detail-name">{{ selectedLog.model || "-" }}</span>
+                </span>
               </div>
               <div class="detail-item-compact">
                 <span class="detail-label-compact">{{ t("logs.requestType") }}:</span>
@@ -938,16 +958,18 @@ const deselectAllColumns = () => {
 .log-table-container {
   /* background: white; */
   /* border-radius: 8px; */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   /* height: 100%; */
 }
 .toolbar {
-  background: var(--card-bg-solid);
-  border-radius: 8px;
+  background: var(--card-bg);
+  border-radius: var(--border-radius-lg);
   padding: 16px;
-  border-bottom: 1px solid var(--border-color);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(16px);
 }
 
 .filter-section {
@@ -1021,9 +1043,12 @@ const deselectAllColumns = () => {
 }
 
 .table-main {
-  background: var(--card-bg-solid);
-  border-radius: 8px;
+  background: var(--card-bg);
+  border-radius: var(--border-radius-lg);
   overflow: hidden;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(16px);
 }
 .table-container {
   /* background: white;
@@ -1110,6 +1135,61 @@ const deselectAllColumns = () => {
   color: var(--text-primary);
 }
 
+.model-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.model-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.2px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.16);
+}
+
+.model-badge-openai {
+  background: linear-gradient(135deg, #111827 0%, #374151 100%);
+}
+
+.model-badge-gemini {
+  background: linear-gradient(135deg, #1d4ed8 0%, #0ea5e9 100%);
+}
+
+.model-badge-anthropic {
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+}
+
+.model-badge-deepseek {
+  background: linear-gradient(135deg, #0ea5e9 0%, #22c55e 100%);
+}
+
+.model-badge-qwen {
+  background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+}
+
+.model-badge-default {
+  background: linear-gradient(135deg, #64748b 0%, #94a3b8 100%);
+}
+
+.model-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.model-detail-name {
+  font-size: 11px;
+}
+
 .key-item {
   grid-column: 1 / -1;
 }
@@ -1126,9 +1206,9 @@ const deselectAllColumns = () => {
   font-family: monospace;
   font-size: 11px;
   color: var(--text-primary);
-  background: var(--bg-tertiary);
+  background: var(--code-bg);
   border: 1px solid var(--border-color);
-  border-radius: 3px;
+  border-radius: var(--border-radius-sm);
   padding: 4px 6px;
   flex: 1;
   min-width: 0;
@@ -1154,9 +1234,9 @@ const deselectAllColumns = () => {
 
 .compact-field {
   border: 1px solid var(--border-color);
-  border-radius: 3px;
+  border-radius: var(--border-radius-sm);
   padding: 6px;
-  background: var(--bg-tertiary);
+  background: var(--code-bg);
 }
 
 .compact-field-error {
@@ -1222,15 +1302,15 @@ const deselectAllColumns = () => {
 }
 
 .field-content {
-  background: var(--bg-tertiary);
+  background: var(--code-bg);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--border-radius-sm);
   padding: 12px;
   font-family: monospace;
   font-size: 13px;
   line-height: 1.5;
   word-break: break-all;
-  color: #495057;
+  color: var(--text-primary);
 }
 
 .key-display {
@@ -1242,10 +1322,10 @@ const deselectAllColumns = () => {
 .key-value {
   font-family: monospace;
   font-size: 12px;
-  color: #856404;
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  border-radius: 4px;
+  color: var(--text-primary);
+  background: var(--code-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
   padding: 4px 8px;
 }
 
@@ -1256,10 +1336,10 @@ const deselectAllColumns = () => {
 
 .empty-content {
   text-align: center;
-  color: #6c757d;
+  color: var(--text-secondary);
   padding: 24px;
-  background: #f8f9fa;
-  border-radius: 6px;
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-sm);
   font-style: italic;
 }
 

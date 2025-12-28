@@ -14,6 +14,7 @@ import {
   Pencil,
   RemoveCircleOutline,
   Search,
+  TimeOutline,
 } from "@vicons/ionicons5";
 import {
   NButton,
@@ -22,8 +23,6 @@ import {
   NIcon,
   NInput,
   NModal,
-  NSelect,
-  NSpace,
   NSpin,
   useDialog,
   type MessageReactive,
@@ -49,6 +48,7 @@ const keys = ref<KeyRow[]>([]);
 const loading = ref(false);
 const searchText = ref("");
 const statusFilter = ref<"all" | "active" | "invalid">("all");
+const recentMinutes = ref<number | null>(null);
 const currentPage = ref(1);
 const pageSize = ref(12);
 const total = ref(0);
@@ -97,6 +97,8 @@ const deleteDialogShow = ref(false);
 const notesDialogShow = ref(false);
 const editingKey = ref<KeyRow | null>(null);
 const editingNotes = ref("");
+const viewKeyDialogShow = ref(false);
+const viewingKey = ref<KeyRow | null>(null);
 
 watch(
   () => props.selectedGroup,
@@ -157,6 +159,12 @@ function handleSearchInput() {
   }
 }
 
+function toggleRecentAdded() {
+  recentMinutes.value = recentMinutes.value === 3 ? null : 3;
+  currentPage.value = 1;
+  loadKeys();
+}
+
 // 处理更多操作菜单
 function handleMoreAction(key: string) {
   switch (key) {
@@ -203,6 +211,7 @@ async function loadKeys() {
       page_size: pageSize.value,
       status: statusFilter.value === "all" ? undefined : (statusFilter.value as KeyStatus),
       key_value: searchText.value.trim() || undefined,
+      recent_minutes: recentMinutes.value ?? undefined,
     });
     keys.value = result.items as KeyRow[];
     total.value = result.pagination.total_items;
@@ -228,6 +237,13 @@ async function copyKey(key: KeyRow) {
   } else {
     window.$message.error(t("keys.copyFailed"));
   }
+}
+
+function copyViewingKey() {
+  if (!viewingKey.value) {
+    return;
+  }
+  copyKey(viewingKey.value);
 }
 
 async function testKey(_key: KeyRow) {
@@ -288,7 +304,8 @@ function formatDuration(ms: number): string {
 }
 
 function toggleKeyVisibility(key: KeyRow) {
-  key.is_visible = !key.is_visible;
+  viewingKey.value = key;
+  viewKeyDialogShow.value = true;
 }
 
 // 获取要显示的值（备注优先，否则显示密钥）
@@ -413,6 +430,17 @@ function formatRelativeTime(date: string) {
     return t("keys.secondsAgo", { seconds: diffSeconds });
   }
   return t("keys.justNow");
+}
+
+function formatAbsoluteTime(date?: string) {
+  if (!date) {
+    return "-";
+  }
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) {
+    return "-";
+  }
+  return parsed.toLocaleString(undefined, { hour12: false }).replace(/\//g, "-");
 }
 
 function getStatusClass(status: KeyStatus): string {
@@ -618,6 +646,16 @@ function resetPage() {
   searchText.value = "";
   statusFilter.value = "all";
 }
+
+// 获取各状态的数量
+function getStatusCount(status: string): number {
+  if (status === "all") {
+    return total.value;
+  }
+  // 这里可以根据实际情况返回各状态的数量
+  // 目前返回 0，后续可以从 API 获取
+  return 0;
+}
 </script>
 
 <template>
@@ -625,60 +663,72 @@ function resetPage() {
     <!-- 工具栏 -->
     <div class="toolbar">
       <div class="toolbar-left">
-        <n-button type="success" size="small" @click="createDialogShow = true">
+        <n-button class="action-btn-custom primary" size="small" @click="createDialogShow = true">
           <template #icon>
             <n-icon :component="AddCircleOutline" />
           </template>
           {{ t("keys.addKey") }}
         </n-button>
-        <n-button type="error" size="small" @click="deleteDialogShow = true">
+        <n-button class="action-btn-custom danger" size="small" @click="deleteDialogShow = true">
           <template #icon>
             <n-icon :component="RemoveCircleOutline" />
           </template>
           {{ t("keys.deleteKey") }}
         </n-button>
+        <n-dropdown :options="moreOptions" trigger="click" @select="handleMoreAction">
+          <n-button class="action-btn-custom" size="small">
+            <template #icon>
+              <span style="font-size: 14px">⋯</span>
+            </template>
+          </n-button>
+        </n-dropdown>
       </div>
       <div class="toolbar-right">
-        <n-space :size="12" align="center">
-          <n-select
-            v-model:value="statusFilter"
-            :options="statusOptions"
+        <n-input-group class="search-group-custom">
+          <n-input
+            v-model:value="searchText"
+            :placeholder="t('keys.keyExactMatch')"
             size="small"
-            style="width: 120px"
-            :placeholder="t('keys.allStatus')"
-          />
-          <n-input-group>
-            <n-input
-              v-model:value="searchText"
-              :placeholder="t('keys.keyExactMatch')"
-              size="small"
-              style="width: 200px"
-              clearable
-              @keyup.enter="handleSearchInput"
-            >
-              <template #prefix>
-                <n-icon :component="Search" />
-              </template>
-            </n-input>
-            <n-button
-              type="primary"
-              ghost
-              size="small"
-              :disabled="loading"
-              @click="handleSearchInput"
-            >
-              {{ t("common.search") }}
-            </n-button>
-          </n-input-group>
-          <n-dropdown :options="moreOptions" trigger="click" @select="handleMoreAction">
-            <n-button size="small" tertiary>
-              <template #icon>
-                <span style="font-size: 16px; font-weight: bold">⋯</span>
-              </template>
-            </n-button>
-          </n-dropdown>
-        </n-space>
+            class="search-input-custom"
+            clearable
+            @keyup.enter="handleSearchInput"
+          >
+            <template #prefix>
+              <n-icon :component="Search" />
+            </template>
+          </n-input>
+          <n-button
+            size="small"
+            class="search-btn-custom"
+            :disabled="loading"
+            @click="handleSearchInput"
+          >
+            {{ t("common.search") }}
+          </n-button>
+        </n-input-group>
+        <button
+          class="filter-toggle-btn"
+          :class="{ active: recentMinutes === 3 }"
+          @click="toggleRecentAdded"
+        >
+          <n-icon :component="TimeOutline" class="toggle-icon" />
+          {{ t("keys.recentAdded3Min") }}
+        </button>
       </div>
+    </div>
+
+    <!-- 标签页式状态筛选 -->
+    <div class="status-tabs">
+      <button
+        v-for="option in statusOptions"
+        :key="option.value"
+        class="status-tab"
+        :class="{ active: statusFilter === option.value }"
+        @click="statusFilter = option.value as any"
+      >
+        {{ option.label }}
+        <span class="count">{{ getStatusCount(option.value) }}</span>
+      </button>
     </div>
 
     <!-- 密钥卡片网格 -->
@@ -725,7 +775,7 @@ function resetPage() {
                     size="tiny"
                     text
                     @click="toggleKeyVisibility(key)"
-                    :title="t('keys.showHide')"
+                    :title="t('keys.showKeys')"
                   >
                     <template #icon>
                       <n-icon :component="key.is_visible ? EyeOffOutline : EyeOutline" />
@@ -750,9 +800,6 @@ function resetPage() {
                 <span class="stat-item">
                   {{ t("keys.failuresShort") }}
                   <strong>{{ key.failure_count }}</strong>
-                </span>
-                <span class="stat-item">
-                  {{ key.last_used_at ? formatRelativeTime(key.last_used_at) : t("keys.unused") }}
                 </span>
               </div>
               <n-button-group class="key-actions">
@@ -787,6 +834,29 @@ function resetPage() {
                   {{ t("common.deleteShort") }}
                 </n-button>
               </n-button-group>
+            </div>
+            <div class="key-meta">
+              <span
+                class="meta-item"
+                :title="key.last_used_at ? formatAbsoluteTime(key.last_used_at) : ''"
+              >
+                <span class="meta-label">{{ t("keys.lastUsed") }}</span>
+                <span class="meta-value">
+                  {{ key.last_used_at ? formatRelativeTime(key.last_used_at) : t("keys.unused") }}
+                </span>
+              </span>
+              <span class="meta-item" :title="formatAbsoluteTime(key.created_at)">
+                <span class="meta-label">{{ t("keys.createdAt") }}</span>
+                <span class="meta-value">
+                  {{ key.created_at ? formatRelativeTime(key.created_at) : "-" }}
+                </span>
+              </span>
+              <span class="meta-item" :title="formatAbsoluteTime(key.updated_at)">
+                <span class="meta-label">{{ t("keys.updatedAt") }}</span>
+                <span class="meta-value">
+                  {{ key.updated_at ? formatRelativeTime(key.updated_at) : "-" }}
+                </span>
+              </span>
             </div>
           </div>
         </div>
@@ -859,49 +929,261 @@ function resetPage() {
       <n-button type="primary" @click="saveKeyNotes">{{ t("common.save") }}</n-button>
     </template>
   </n-modal>
+
+  <!-- 密钥查看窗口 -->
+  <n-modal v-model:show="viewKeyDialogShow" preset="dialog" :title="t('keys.keyValue')">
+    <div class="key-viewer">
+      <n-input
+        :value="viewingKey?.key_value || ''"
+        type="textarea"
+        readonly
+        :rows="3"
+        class="key-viewer-input"
+      />
+    </div>
+    <template #action>
+      <n-button @click="viewKeyDialogShow = false">{{ t("common.close") }}</n-button>
+      <n-button type="primary" @click="copyViewingKey">{{ t("common.copy") }}</n-button>
+    </template>
+  </n-modal>
 </template>
 
 <style scoped>
 .key-table-container {
-  background: var(--card-bg-solid);
-  border-radius: 8px;
-  box-shadow: var(--shadow-md);
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-lg);
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
-  height: 100%;
+  height: auto;
   display: flex;
   flex-direction: column;
+  backdrop-filter: blur(16px);
 }
 
 .toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
+  padding: 16px 20px;
   background: var(--card-bg-solid);
   border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
   gap: 16px;
-  min-height: 64px;
-}
-
-.toolbar :deep(.n-button) {
-  font-weight: 500;
 }
 
 .toolbar-left {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
 .toolbar-right {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
   flex: 1;
   justify-content: flex-end;
   min-width: 0;
+}
+
+/* 操作按钮样式 */
+.action-btn-custom {
+  font-weight: 500;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--card-bg-solid);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  padding: 6px 14px;
+  font-size: 13px;
+  box-shadow: none;
+}
+
+.action-btn-custom:hover {
+  background: var(--hover-bg);
+  border-color: var(--border-hover);
+}
+
+.action-btn-custom.primary {
+  background: var(--primary-soft-bg);
+  color: var(--primary-soft-text);
+  border: 1px solid var(--primary-soft-border);
+}
+
+.action-btn-custom.primary:hover {
+  background: var(--primary-soft-bg-hover);
+  border-color: var(--primary-soft-border-hover);
+}
+
+.action-btn-custom.danger {
+  color: var(--error-color);
+  background: var(--card-bg-solid);
+  border: 1px solid var(--border-color);
+}
+
+.action-btn-custom.danger:hover {
+  background: var(--error-bg);
+  border-color: var(--error-color);
+}
+
+:root.dark .action-btn-custom {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+:root.dark .action-btn-custom:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root.dark .action-btn-custom.primary {
+  background: var(--primary-soft-bg);
+  border-color: var(--primary-soft-border);
+  color: var(--primary-soft-text);
+}
+
+:deep(.action-btn-custom .n-button__state-border),
+:deep(.action-btn-custom .n-button__border) {
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* 搜索框样式 */
+.search-group-custom {
+  display: flex;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  background: var(--card-bg-solid);
+}
+
+.search-input-custom {
+  border: none !important;
+  background: transparent;
+}
+
+.search-input-custom :deep(.n-input__border),
+.search-input-custom :deep(.n-input__state-border) {
+  border: none !important;
+}
+
+.search-btn-custom {
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-weight: 500;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.search-btn-custom:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.search-btn-custom:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-color-suppl);
+}
+
+:deep(.search-btn-custom .n-button__state-border),
+:deep(.search-btn-custom .n-button__border) {
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* 筛选切换按钮 */
+.filter-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--card-bg-solid);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.filter-toggle-btn:hover {
+  background: var(--hover-bg);
+  border-color: var(--border-hover);
+}
+
+.filter-toggle-btn.active {
+  background: var(--primary-color-suppl);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.toggle-icon {
+  font-size: 14px;
+}
+
+/* 标签页式状态筛选 */
+.status-tabs {
+  display: flex;
+  gap: 0;
+  background: transparent;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 20px;
+}
+
+.status-tab {
+  position: relative;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-tab:hover {
+  color: var(--text-primary);
+  background: var(--hover-bg);
+}
+
+.status-tab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--primary-color);
+  background: transparent;
+}
+
+.status-tab .count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+.status-tab:not(.active) .count {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.status-tab.active .count {
+  background: var(--primary-color-suppl);
+  color: var(--primary-color);
 }
 
 .filter-group {
@@ -936,25 +1218,25 @@ function resetPage() {
   text-align: left;
   cursor: pointer;
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
   transition: background-color 0.2s;
 }
 
 .menu-item:hover {
-  background: #f8f9fa;
+  background: var(--hover-bg);
 }
 
 .menu-item.danger {
-  color: #dc3545;
+  color: var(--error-color);
 }
 
 .menu-item.danger:hover {
-  background: #f8d7da;
+  background: var(--error-bg);
 }
 
 .menu-divider {
   height: 1px;
-  background: #e9ecef;
+  background: var(--border-color);
   margin: 4px 0;
 }
 
@@ -979,21 +1261,21 @@ function resetPage() {
 }
 
 .btn-primary {
-  background: #007bff;
-  color: white;
+  background: var(--primary-color);
+  color: #ffffff;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #0056b3;
+  background: var(--primary-color-hover);
 }
 
 .btn-secondary {
-  background: #6c757d;
-  color: white;
+  background: var(--text-tertiary);
+  color: #ffffff;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #545b62;
+  background: var(--text-secondary);
 }
 
 .more-icon {
@@ -1005,9 +1287,11 @@ function resetPage() {
 .search-input,
 .page-size-select {
   padding: 4px 8px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
   font-size: 12px;
+  color: var(--text-primary);
+  background: var(--card-bg-solid);
 }
 
 .search-input {
@@ -1018,56 +1302,59 @@ function resetPage() {
 .search-input:focus,
 .page-size-select:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-color-suppl);
 }
+
 
 /* 密钥卡片网格 */
 .keys-grid-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
+  flex: 0 0 auto;
+  overflow: visible;
+  padding: 24px;
+  background: transparent;
+}
+
+.empty-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 65px;
+  padding: 16px 0;
 }
 
 .keys-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
 }
 
 .key-card {
   background: var(--card-bg-solid);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 14px;
-  transition: all 0.2s;
+  border-radius: var(--border-radius-lg);
+  padding: 16px;
+  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
 }
 
 .key-card:hover {
   box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
 }
 
 /* 状态相关样式 */
 .key-card.status-valid {
-  border-color: var(--success-border);
-  background: var(--success-bg);
-  border-width: 1.5px;
+  border-left: 3px solid var(--success-color);
 }
 
 .key-card.status-invalid {
-  border-color: var(--invalid-border);
-  background: var(--card-bg-solid);
-  opacity: 0.85;
-}
-
-.key-card.status-error {
-  border-color: var(--error-border);
-  background: var(--error-bg);
+  border-left: 3px solid var(--error-color);
+  opacity: 0.95;
 }
 
 /* 主要信息行 */
@@ -1104,6 +1391,30 @@ function resetPage() {
   min-width: 0;
 }
 
+.key-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.meta-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.meta-value {
+  color: var(--text-primary);
+}
+
 .stat-item {
   white-space: nowrap;
   color: var(--text-secondary);
@@ -1116,128 +1427,142 @@ function resetPage() {
 
 .key-actions {
   flex-shrink: 0;
-  &:deep(.n-button) {
-    padding: 0 4px;
-  }
+}
+
+.key-actions :deep(.n-button) {
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+}
+
+.key-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-item {
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.stat-item strong {
+  color: var(--text-primary);
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+/* 底部统计和按钮行 */
+.key-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-color);
+}
+
+.key-actions {
+  flex-shrink: 0;
+}
+
+.key-actions :deep(.n-button) {
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+}
+
+.key-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-item {
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.stat-item strong {
+  color: var(--text-primary);
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+/* 主要信息行 */
+.key-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.key-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .key-text {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-  font-weight: 500;
+  font-weight: 400;
   flex: 1;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
-}
-
-/* 浅色主题 */
-:root:not(.dark) .key-text {
-  color: #495057;
-  background: #f8f9fa;
-}
-
-/* 暗黑主题 */
-:root.dark .key-text {
+  font-size: 13px;
   color: var(--text-primary);
-  background: var(--bg-tertiary);
+  background: var(--code-bg);
 }
 
 :deep(.n-input__input-el) {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
   font-size: 13px;
+  color: var(--text-primary);
+}
+
+:deep(.n-tag) {
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 12px;
 }
 
 .quick-actions {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   flex-shrink: 0;
 }
 
-.quick-btn {
-  padding: 4px 6px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: 3px;
-  font-size: 12px;
-  transition: background-color 0.2s;
+.quick-actions :deep(.n-button) {
+  border-radius: 6px;
+  transition: all 0.2s ease;
 }
 
-/* 浅色主题 */
-:root:not(.dark) .quick-btn:hover {
-  background: #e9ecef;
+.quick-actions :deep(.n-button:hover) {
+  background: var(--hover-bg);
 }
 
-/* 暗黑主题 */
-:root.dark .quick-btn:hover {
-  background: var(--bg-tertiary);
-}
-
-/* 统计信息行 */
-
-.action-btn {
-  padding: 2px 6px;
-  border: 1px solid var(--border-color);
-  background: var(--card-bg-solid);
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: 500;
-  transition: all 0.2s;
-  white-space: nowrap;
-  color: var(--text-primary);
-}
-
-.action-btn:hover {
-  background: var(--bg-secondary);
-}
-
-.action-btn.primary {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-}
-
-.action-btn.primary:hover {
-  background: var(--primary-color);
-  color: white;
-}
-
-.action-btn.secondary {
-  border-color: #6c757d;
-  color: #6c757d;
-}
-
-.action-btn.secondary:hover {
-  background: #6c757d;
-  color: white;
-}
-
-.action-btn.danger {
-  border-color: #dc3545;
-  color: #dc3545;
-}
-
-.action-btn.danger:hover {
-  background: #dc3545;
-  color: white;
-}
-
-/* 加载和空状态 */
-.loading-state,
-.empty-state {
+/* 密钥查看弹窗 */
+.key-viewer {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
-  color: #6c757d;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.loading-spinner {
-  font-size: 14px;
-}
-
-.empty-text {
-  font-size: 14px;
+.key-viewer-input :deep(.n-input__input-el) {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 13px;
+  color: var(--text-primary);
 }
 
 /* 分页 */
@@ -1245,18 +1570,17 @@ function resetPage() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 16px 20px;
   background: var(--card-bg-solid);
   border-top: 1px solid var(--border-color);
   flex-shrink: 0;
-  border-radius: 0 0 8px 8px;
 }
 
 .pagination-info {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
 }
 
@@ -1266,11 +1590,43 @@ function resetPage() {
   gap: 12px;
 }
 
+.pagination-controls :deep(.n-button) {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
 .page-info {
-  font-size: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* 元数据信息 */
+.key-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 11px;
   color: var(--text-secondary);
 }
 
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.meta-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.meta-value {
+  color: var(--text-primary);
+}
+
+/* 响应式 */
 @media (max-width: 768px) {
   .toolbar {
     flex-direction: column;
@@ -1284,9 +1640,18 @@ function resetPage() {
     justify-content: space-between;
   }
 
-  .toolbar-right .n-space {
-    width: 100%;
-    justify-content: space-between;
+  .status-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .keys-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pagination-container {
+    flex-direction: column;
+    gap: 12px;
   }
 }
 </style>

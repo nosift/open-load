@@ -60,6 +60,7 @@ var MessagesJaJP = map[string]string{
 	"validation.group_id_required":       "group_idクエリパラメータが必要です",
 	"validation.invalid_group_id_format": "無効なgroup_id形式",
 	"validation.keys_text_empty":         "キーテキストは空にできません",
+	"validation.invalid_recent_minutes":  "recent_minutes の値が無効です",
 	"validation.invalid_group_type":      "無効なグループタイプ、'standard'または'aggregate'である必要があります",
 	"validation.sub_groups_required":     "集約グループには少なくとも1つのサブグループが必要です",
 	"validation.invalid_sub_group_id":    "無効なサブグループID",
@@ -103,6 +104,7 @@ var MessagesJaJP = map[string]string{
 	"database.current_stats_failed":  "現在の期間統計の取得に失敗しました",
 	"database.previous_stats_failed": "前の期間統計の取得に失敗しました",
 	"database.chart_data_failed":     "チャートデータの取得に失敗しました",
+	"database.model_usage_failed":    "モデル使用統計の取得に失敗しました",
 	"database.group_stats_failed":    "部分統計の取得に失敗しました",
 
 	// Success messages

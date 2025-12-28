@@ -25,33 +25,49 @@ import { computed, defineComponent, watch } from "vue";
 const themeOverrides = computed<GlobalThemeOverrides>(() => {
   const baseOverrides: GlobalThemeOverrides = {
     common: {
-      primaryColor: "#667eea",
-      primaryColorHover: "#5a6fd8",
-      primaryColorPressed: "#4c63d2",
-      primaryColorSuppl: "#8b9df5",
-      borderRadius: "12px",
-      borderRadiusSmall: "8px",
+      primaryColor: "#09090b", // 极简黑
+      primaryColorHover: "#27272a",
+      primaryColorPressed: "#000000",
+      primaryColorSuppl: "rgba(9, 9, 11, 0.05)",
+      borderRadius: "6px", // 小圆角
+      borderRadiusSmall: "4px",
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      // 亮色模式下的背景色
+      bodyColor: "#ffffff",
+      cardColor: "#ffffff",
+      modalColor: "#ffffff",
+      popoverColor: "#ffffff",
+      tableColor: "#ffffff",
+      textColorBase: "#09090b",
     },
     Card: {
       paddingMedium: "24px",
+      borderRadius: "8px",
+      borderColor: "#e4e4e7", // 显式边框
     },
     Button: {
-      fontWeight: "600",
-      heightMedium: "40px",
-      heightLarge: "48px",
+      fontWeight: "500",
+      heightMedium: "36px",
+      heightLarge: "44px",
+      borderRadiusMedium: "6px",
+      border: "1px solid #e4e4e7",
     },
     Input: {
-      heightMedium: "40px",
-      heightLarge: "48px",
+      heightMedium: "36px",
+      heightLarge: "44px",
+      borderRadius: "6px",
+      border: "1px solid #e4e4e7",
+      borderHover: "1px solid #a1a1aa",
+      borderFocus: "1px solid #09090b",
     },
     Menu: {
-      itemHeight: "42px",
+      itemHeight: "36px",
+      borderRadius: "6px",
     },
     LoadingBar: {
-      colorLoading: "#667eea",
-      colorError: "#ff4757",
-      height: "3px",
+      colorLoading: "#09090b",
+      colorError: "#ef4444",
+      height: "2px",
     },
   };
 
@@ -61,86 +77,62 @@ const themeOverrides = computed<GlobalThemeOverrides>(() => {
       ...baseOverrides,
       common: {
         ...baseOverrides.common,
-        // 分层对比：浅色外层背景，深黑色内容
-        bodyColor: "#2b3038", // 外层背景 - 浅灰色
-        cardColor: "#0f1115", // 卡片内容 - 深黑色
-        modalColor: "#0f1115", // 模态框 - 深黑色
-        popoverColor: "#0f1115", // 弹出层 - 深黑色
-        tableColor: "#0f1115", // 表格 - 深黑色
-        inputColor: "#1a1d23", // 输入框 - 稍深一点
-        actionColor: "#1a1d23", // 操作区域
-        textColorBase: "#e8e8e8", // 文字 - 浅色高对比
-        textColor1: "#e8e8e8",
-        textColor2: "#b4b4b4",
-        textColor3: "#888888",
-        borderColor: "rgba(255, 255, 255, 0.08)",
-        dividerColor: "rgba(255, 255, 255, 0.05)",
+        primaryColor: "#ffffff",
+        primaryColorHover: "#e4e4e7",
+        primaryColorPressed: "#fafafa",
+        primaryColorSuppl: "rgba(255, 255, 255, 0.1)",
+        
+        bodyColor: "#09090b",
+        cardColor: "#09090b",
+        modalColor: "#09090b",
+        popoverColor: "#09090b",
+        tableColor: "#09090b",
+        inputColor: "#18181b",
+        
+        textColorBase: "#fafafa",
+        textColor1: "#fafafa",
+        textColor2: "#a1a1aa",
+        textColor3: "#52525b",
+        
+        borderColor: "#27272a",
+        dividerColor: "#27272a",
       },
       Card: {
         ...baseOverrides.Card,
-        color: "#0f1115", // 卡片背景 - 深黑色
-        textColor: "#e8e8e8",
-        borderColor: "rgba(255, 255, 255, 0.08)",
+        color: "#09090b",
+        borderColor: "#27272a",
+        textColor: "#fafafa",
       },
       Input: {
         ...baseOverrides.Input,
-        color: "#1a1d23", // 输入框背景
-        textColor: "#e8e8e8",
-        colorFocus: "#1a1d23",
-        borderHover: "rgba(102, 126, 234, 0.5)",
-        borderFocus: "rgba(102, 126, 234, 0.8)",
-        placeholderColor: "#666666",
+        color: "#09090b",
+        textColor: "#fafafa",
+        border: "1px solid #27272a",
+        borderHover: "1px solid #52525b",
+        borderFocus: "1px solid #fafafa",
+        colorFocus: "#09090b",
       },
-      Select: {
-        peers: {
-          InternalSelection: {
-            textColor: "#e8e8e8",
-            color: "#1a1d23",
-            placeholderColor: "#666666",
-          },
-        },
+      Button: {
+        ...baseOverrides.Button,
+        border: "1px solid #27272a",
       },
       DataTable: {
-        tdColor: "#0f1115", // 表格单元格 - 深黑色
-        thColor: "#1a1d23", // 表头 - 稍深
-        thTextColor: "#e8e8e8",
-        tdTextColor: "#e8e8e8",
-        borderColor: "rgba(255, 255, 255, 0.08)",
-      },
-      Tag: {
-        textColor: "#e8e8e8",
-      },
-      Pagination: {
-        itemTextColor: "#b4b4b4",
-        itemTextColorActive: "#e8e8e8",
-        itemColor: "#1a1d23",
-        itemColorActive: "#282c37",
-      },
-      DatePicker: {
-        itemTextColor: "#e8e8e8",
-        itemColorActive: "#1a1d23",
-        panelColor: "#0f1115",
+        tdColor: "#09090b",
+        thColor: "#09090b", // 表头与背景同色，或略有区分
+        thTextColor: "#fafafa",
+        tdTextColor: "#fafafa",
+        borderColor: "#27272a",
       },
       Message: {
-        color: "#323841", // 消息背景 - 浅灰色，比内容区域浅
-        textColor: "#e8e8e8",
-        iconColor: "#e8e8e8",
-        borderRadius: "8px",
-        colorInfo: "#323841",
-        colorSuccess: "#323841",
-        colorWarning: "#323841",
-        colorError: "#323841",
-        colorLoading: "#323841",
+        color: "#18181b",
+        textColor: "#fafafa",
+        iconColor: "#fafafa",
+        borderRadius: "6px",
       },
       LoadingBar: {
-        ...baseOverrides.LoadingBar,
-      },
-      Notification: {
-        color: "#323841", // 通知背景 - 浅灰色
-        textColor: "#e8e8e8",
-        titleTextColor: "#e8e8e8",
-        descriptionTextColor: "#b4b4b4",
-        borderRadius: "8px",
+        colorLoading: "#ffffff",
+        colorError: "#ef4444",
+        height: "2px",
       },
     };
   }

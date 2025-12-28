@@ -178,6 +178,8 @@ type DashboardStatsResponse struct {
 	RequestCount     StatCard          `json:"request_count"`
 	ErrorRate        StatCard          `json:"error_rate"`
 	SecurityWarnings []SecurityWarning `json:"security_warnings"`
+	ModelUsage24h    []ModelUsageItem  `json:"model_usage_24h"`
+	ModelUsage7d     []ModelUsageItem  `json:"model_usage_7d"`
 }
 
 // ChartDataset 用于图表的数据集
@@ -191,6 +193,14 @@ type ChartDataset struct {
 type ChartData struct {
 	Labels   []string       `json:"labels"`
 	Datasets []ChartDataset `json:"datasets"`
+}
+
+type ModelUsageItem struct {
+	Model        string `json:"model"`
+	RequestCount int64  `json:"request_count"`
+	SuccessCount int64  `json:"success_count"`
+	FailureCount int64  `json:"failure_count"`
+	RetryCount   int64  `json:"retry_count"`
 }
 
 // GroupHourlyStat 对应 group_hourly_stats 表，用于存储每个分组每小时的请求统计

@@ -67,7 +67,12 @@ onMounted(() => {
         <n-grid-item span="1">
           <n-card :bordered="false" class="stat-card" style="animation-delay: 0s">
             <div class="stat-header">
-              <div class="stat-icon key-icon">🔑</div>
+              <div class="stat-icon key-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="6" y="11" width="12" height="9" rx="2" fill="none" />
+                  <path d="M8 11V7a4 4 0 0 1 8 0v4" fill="none" />
+                </svg>
+              </div>
               <n-tooltip v-if="stats?.key_count.sub_value" trigger="hover">
                 <template #trigger>
                   <n-tag type="error" size="small" class="stat-trend">
@@ -100,7 +105,12 @@ onMounted(() => {
         <n-grid-item span="1">
           <n-card :bordered="false" class="stat-card" style="animation-delay: 0.05s">
             <div class="stat-header">
-              <div class="stat-icon rpm-icon">⏱️</div>
+              <div class="stat-icon rpm-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" fill="none" />
+                  <path d="M12 7v5l3 3" fill="none" />
+                </svg>
+              </div>
               <n-tag
                 v-if="stats?.rpm && stats.rpm.trend !== undefined"
                 :type="stats?.rpm.trend_is_growth ? 'success' : 'error'"
@@ -133,7 +143,12 @@ onMounted(() => {
         <n-grid-item span="1">
           <n-card :bordered="false" class="stat-card" style="animation-delay: 0.1s">
             <div class="stat-header">
-              <div class="stat-icon request-icon">📈</div>
+              <div class="stat-icon request-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 17l6-6 4 4 7-8" fill="none" />
+                  <path d="M16 7h5v5" fill="none" />
+                </svg>
+              </div>
               <n-tag
                 v-if="stats?.request_count && stats.request_count.trend !== undefined"
                 :type="stats?.request_count.trend_is_growth ? 'success' : 'error'"
@@ -166,7 +181,13 @@ onMounted(() => {
         <n-grid-item span="1">
           <n-card :bordered="false" class="stat-card" style="animation-delay: 0.15s">
             <div class="stat-header">
-              <div class="stat-icon error-icon">🛡️</div>
+              <div class="stat-icon error-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3l7 4v5c0 5-3.5 9-7 10-3.5-1-7-5-7-10V7l7-4z" fill="none" />
+                  <path d="M12 8v4" fill="none" />
+                  <path d="M12 16h0" fill="none" />
+                </svg>
+              </div>
               <n-tag
                 v-if="stats?.error_rate.trend !== 0"
                 :type="stats?.error_rate.trend_is_growth ? 'success' : 'error'"
@@ -209,64 +230,66 @@ onMounted(() => {
 .stat-card {
   background: var(--card-bg);
   border-radius: var(--border-radius-lg);
-  border: 1px solid var(--border-color-light);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
-  animation: slideInUp 0.2s ease-out both;
   transition: all 0.2s ease;
+  height: 100%; /* 确保卡片等高 */
+  backdrop-filter: blur(16px);
 }
 
 .stat-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
 }
 
 .stat-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 24px; /* 增加头部间距 */
 }
 
+/* 统一图标样式，改为单色/描边风格 */
 .stat-icon {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--border-radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
-  color: white;
-  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color-light);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6);
 }
 
-.key-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.stat-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.rpm-icon {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.request-icon {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
+.key-icon,
+.rpm-icon,
+.request-icon,
 .error-icon {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  /* 移除特定颜色背景，使用通用样式 */
+  background: var(--bg-tertiary);
 }
 
 .stat-trend {
-  font-weight: 600;
+  font-weight: 500;
+  /* 移除趋势标签前的箭头伪元素，因为NTag已经包含内容 */
 }
 
 .stat-trend:before {
-  content: "";
-  display: inline-block;
-  width: 0;
-  height: 0;
-  margin-right: 4px;
-  vertical-align: middle;
+  display: none;
 }
 
 .stat-content {
@@ -274,66 +297,51 @@ onMounted(() => {
 }
 
 .stat-value {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.9rem;
+  font-weight: 600;
   line-height: 1.2;
   color: var(--text-primary);
   margin-bottom: 4px;
+  font-feature-settings: "tnum"; /* 表格数字对齐 */
 }
 
 .stat-title {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 400;
 }
 
+/* 简化进度条 */
 .stat-bar {
   width: 100%;
-  height: 4px;
-  background: var(--border-color);
-  border-radius: 2px;
+  height: 3px;
+  background: var(--border-color-light);
+  border-radius: 1px;
   overflow: hidden;
   position: relative;
 }
 
 .stat-bar-fill {
   height: 100%;
-  border-radius: 2px;
+  border-radius: 1px;
   transition: width 0.5s ease-out;
-  transition-delay: 0.2s;
+  background: var(--primary-color);
 }
 
-.key-bar {
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+/* 移除特定进度条颜色，保持黑白灰 */
+.key-bar, .rpm-bar, .request-bar, .error-bar {
+  background: var(--primary-color);
 }
 
-.rpm-bar {
-  background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
-}
-
-.request-bar {
-  background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
-}
-
+/* 针对错误率进度条可以保留警示色，或者也统一 */
 .error-bar {
-  background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  /* background: var(--error-color); */
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;

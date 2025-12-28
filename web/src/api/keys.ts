@@ -74,6 +74,7 @@ export const keysApi = {
     page_size: number;
     key_value?: string;
     status?: KeyStatus;
+    recent_minutes?: number;
   }): Promise<{
     items: APIKey[];
     pagination: {

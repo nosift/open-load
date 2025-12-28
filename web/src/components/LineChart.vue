@@ -565,24 +565,12 @@ onMounted(() => {
 
 <style scoped>
 .chart-container {
-  padding: 20px;
-  border-radius: 16px;
-  backdrop-filter: blur(4px);
-  border: 1px solid var(--border-color-light);
-}
-
-/* 浅色主题 - 保持原有的紫色渐变设计 */
-:root:not(.dark) .chart-container {
-  background: var(--primary-gradient);
-  color: white;
-}
-
-/* 暗黑主题 - 使用深蓝紫渐变外层背景 */
-:root.dark .chart-container {
-  background: linear-gradient(135deg, #525a7a 0%, #424964 100%);
-  box-shadow: var(--shadow-md);
-  border: 1px solid rgba(139, 157, 245, 0.2);
-  color: #e8e8e8;
+  padding: 24px;
+  border-radius: var(--border-radius-lg);
+  backdrop-filter: blur(16px);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .chart-header {
@@ -599,41 +587,17 @@ onMounted(() => {
 
 .chart-title {
   /* margin: 0 0 4px 0; */
-  font-size: 24px;
+  font-size: 22px;
   line-height: 28px;
   font-weight: 600;
-}
-
-/* 浅色主题 - 白色渐变文字 */
-:root:not(.dark) .chart-title {
-  background: linear-gradient(45deg, #fff, #f0f0f0);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* 暗黑主题 - 白色文字 */
-:root.dark .chart-title {
-  color: white;
-  background: none;
-  -webkit-background-clip: unset;
-  -webkit-text-fill-color: unset;
-  background-clip: unset;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
 .chart-subtitle {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 400;
-}
-
-/* 浅色主题 */
-:root:not(.dark) .chart-subtitle {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-/* 暗黑主题 */
-:root.dark .chart-subtitle {
   color: var(--text-secondary);
 }
 
@@ -656,18 +620,9 @@ onMounted(() => {
   padding: 2px;
   backdrop-filter: blur(8px);
   border-radius: 24px;
-}
-
-/* 浅色主题 */
-:root:not(.dark) .chart-legend {
-  background: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-}
-
-/* 暗黑主题 */
-:root.dark .chart-legend {
-  background: var(--overlay-bg);
+  background: var(--chart-legend-bg);
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .legend-item {
@@ -679,35 +634,16 @@ onMounted(() => {
   padding: 8px 16px;
   border-radius: 20px;
   transition: all 0.2s ease;
-}
-
-/* 浅色主题 */
-:root:not(.dark) .legend-item {
-  color: #334155;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-}
-
-/* 暗黑主题 */
-:root.dark .legend-item {
   color: var(--text-primary);
-  background: var(--bg-tertiary);
+  background: var(--card-bg-solid);
   border: 1px solid var(--border-color);
 }
 
-/* 浅色主题悬停效果 */
-:root:not(.dark) .legend-item:hover {
-  background: rgba(255, 255, 255, 0.9);
+/* 悬停效果 */
+.legend-item:hover {
+  background: var(--hover-bg);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* 暗黑主题悬停效果 */
-:root.dark .legend-item:hover {
-  background: var(--primary-color);
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .legend-indicator {
@@ -726,7 +662,7 @@ onMounted(() => {
   transform: translate(-50%, -50%);
   width: 6px;
   height: 6px;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.6);
   border-radius: 50%;
 }
 
@@ -745,26 +681,14 @@ onMounted(() => {
   width: 100%;
   height: auto;
   border-radius: 8px;
-}
-
-/* 浅色主题 - 白色背景 */
-:root:not(.dark) .chart-svg {
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e0e0e0;
-}
-
-/* 暗黑主题 - 深色背景 */
-:root.dark .chart-svg {
   background: var(--card-bg-solid);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
   border: 1px solid var(--border-color);
 }
 
 .axis-label {
   fill: var(--chart-text);
   font-size: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "SF Pro Text", "Helvetica Neue", "Avenir Next", "Avenir", "Segoe UI", sans-serif;
 }
 
 .line-path {
@@ -798,8 +722,8 @@ onMounted(() => {
 
 .chart-tooltip {
   position: absolute;
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
+  background: rgba(28, 28, 30, 0.92);
+  color: #ffffff;
   padding: 12px 16px;
   border-radius: 8px;
   font-size: 13px;
@@ -807,8 +731,8 @@ onMounted(() => {
   transform: translateX(-50%) translateY(-100%);
   z-index: 1000;
   backdrop-filter: blur(8px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   min-width: 140px;
   max-width: 220px;
 }
@@ -817,7 +741,7 @@ onMounted(() => {
   font-weight: 700;
   margin-bottom: 8px;
   text-align: center;
-  color: #e2e8f0;
+  color: #f5f5f7;
   font-size: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   padding-bottom: 6px;
@@ -848,7 +772,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   height: 260px;
-  color: white;
+  color: var(--text-secondary);
 }
 
 .chart-loading p {
@@ -860,7 +784,7 @@ onMounted(() => {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .chart-container {
-    padding: 16px;
+    padding: 20px;
   }
 
   .chart-title {
@@ -897,9 +821,9 @@ onMounted(() => {
   .legend-item {
     padding: 4px 10px;
     font-size: 12px;
-    color: #333;
-    background: white;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+    background: var(--card-bg-solid);
+    border: 1px solid var(--border-color);
     gap: 6px;
   }
 

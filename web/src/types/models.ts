@@ -226,6 +226,14 @@ export interface SecurityWarning {
   suggestion: string; // 建议解决方案
 }
 
+export interface ModelUsageItem {
+  model: string;
+  request_count: number;
+  success_count?: number;
+  failure_count?: number;
+  retry_count?: number;
+}
+
 // 仪表盘基础统计响应
 export interface DashboardStatsResponse {
   key_count: StatCard;
@@ -233,6 +241,8 @@ export interface DashboardStatsResponse {
   request_count: StatCard;
   error_rate: StatCard;
   security_warnings: SecurityWarning[];
+  model_usage_24h?: ModelUsageItem[];
+  model_usage_7d?: ModelUsageItem[];
 }
 
 // 图表数据集

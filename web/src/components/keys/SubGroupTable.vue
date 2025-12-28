@@ -631,13 +631,13 @@ function formatNumber(num: number): string {
 }
 
 :root:not(.dark) .key-text {
-  color: #495057;
-  background: #f8f9fa;
+  color: var(--text-primary);
+  background: var(--code-bg);
 }
 
 :root.dark .key-text {
   color: var(--text-primary);
-  background: var(--bg-tertiary);
+  background: var(--code-bg);
 }
 
 :deep(.n-input__input-el) {

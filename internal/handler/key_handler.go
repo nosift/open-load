@@ -150,13 +150,30 @@ func (s *Server) ListKeysInGroup(c *gin.Context) {
 		return
 	}
 
+	recentMinutes := 0
+	recentMinutesText := c.Query("recent_minutes")
+	if recentMinutesText != "" {
+		value, err := strconv.Atoi(recentMinutesText)
+		if err != nil || value <= 0 {
+			response.ErrorI18nFromAPIError(c, app_errors.ErrValidation, "validation.invalid_recent_minutes")
+			return
+		}
+		recentMinutes = value
+	}
+
 	searchKeyword := c.Query("key_value")
 	searchHash := ""
 	if searchKeyword != "" {
 		searchHash = s.EncryptionSvc.Hash(searchKeyword)
 	}
 
-	query := s.KeyService.ListKeysInGroupQuery(groupID, statusFilter, searchHash)
+	var createdAfter *time.Time
+	if recentMinutes > 0 {
+		threshold := time.Now().Add(-time.Duration(recentMinutes) * time.Minute)
+		createdAfter = &threshold
+	}
+
+	query := s.KeyService.ListKeysInGroupQuery(groupID, statusFilter, searchHash, createdAfter)
 
 	var keys []models.APIKey
 	paginatedResult, err := response.Paginate(c, query, &keys)

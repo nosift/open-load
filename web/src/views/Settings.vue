@@ -181,6 +181,7 @@ function generateValidationRules(item: Setting): FormItemRule[] {
         :disabled="isSaving"
         @click="handleSubmit"
         style="min-width: 200px"
+        class="save-settings-btn"
       >
         <template #icon>
           <n-icon :component="Save" />
@@ -190,3 +191,44 @@ function generateValidationRules(item: Setting): FormItemRule[] {
     </div>
   </n-space>
 </template>
+
+<style scoped>
+.save-settings-btn {
+  background: var(--card-bg-solid) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: none;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.save-settings-btn:hover {
+  background: var(--card-bg-solid) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.save-settings-btn:active {
+  background: var(--card-bg-solid) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+:deep(.save-settings-btn:hover .n-button__state-border),
+:deep(.save-settings-btn:active .n-button__state-border),
+:deep(.save-settings-btn:focus-visible .n-button__state-border),
+:deep(.save-settings-btn .n-button__state-border) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:deep(.save-settings-btn .n-button__border) {
+  border-color: var(--border-color) !important;
+}
+
+:deep(.save-settings-btn .n-button__state-border),
+:deep(.save-settings-btn .n-button__border) {
+  box-shadow: none !important;
+  border: none !important;
+}
+</style>

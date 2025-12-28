@@ -1,140 +1,210 @@
-/* 全局 CSS 变量定义 */
+/* 全局 CSS 变量定义 - Modern Minimalist Style */
 
 /* 浅色主题变量 */
 :root,
 :root.light {
   /* 背景色 */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f7fa;
-  --bg-tertiary: #e5e7eb;
-  --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  --bg-primary: #f5f5f7;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f2f2f7;
+  --bg-gradient: radial-gradient(
+      1200px circle at 15% -10%,
+      rgba(255, 255, 255, 0.9),
+      rgba(245, 245, 247, 0.6) 45%,
+      rgba(235, 238, 245, 0.4) 100%
+    ),
+    linear-gradient(180deg, #fafafb 0%, #f5f5f7 40%, #edf0f5 100%);
 
   /* 文字颜色 */
-  --text-primary: #1e293b;
-  --text-secondary: #475569;
-  --text-tertiary: #94a3b8;
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-tertiary: #8e8e93;
   --text-inverse: #ffffff;
 
-  /* 边框颜色 */
-  --border-color: #e2e8f0;
-  --border-color-light: rgba(0, 0, 0, 0.08);
+  /* 边框颜色 - 更加细腻 */
+  --border-color: #e1e1e6;
+  --border-color-light: #ededf2;
+  --border-hover: #c9c9d1;
 
-  /* 卡片背景 */
-  --card-bg: rgba(255, 255, 255, 0.95);
+  /* 卡片背景 - 纯净 */
+  --card-bg: rgba(255, 255, 255, 0.9);
   --card-bg-solid: #ffffff;
 
   /* 组件颜色 */
-  --header-bg: rgba(255, 255, 255, 0.95);
-  --footer-bg: rgba(255, 255, 255, 0.95);
+  --header-bg: rgba(255, 255, 255, 0.78);
+  --footer-bg: rgba(255, 255, 255, 0.78);
+  --sidebar-bg: rgba(250, 250, 252, 0.9);
 
-  /* 状态颜色 */
-  --success-bg: rgba(24, 160, 88, 0.1);
-  --success-border: rgba(24, 160, 88, 0.3);
-  --error-bg: rgba(255, 193, 7, 0.1);
-  --error-border: rgba(255, 193, 7, 0.5);
-  --invalid-bg: rgb(250, 250, 252);
-  --invalid-border: #ddd;
+  /* 状态颜色 - 调低饱和度 */
+  --success-bg: rgba(52, 199, 89, 0.12);
+  --success-border: rgba(52, 199, 89, 0.2);
+  --success-text: #248a3d;
+  
+  --error-bg: rgba(255, 59, 48, 0.12);
+  --error-border: rgba(255, 59, 48, 0.2);
+  --error-text: #d92d20;
+
+  --warning-bg: rgba(255, 159, 10, 0.12);
+  --warning-border: rgba(255, 159, 10, 0.2);
+  --warning-text: #b25c00;
+
+  --invalid-bg: #f6f7fb;
+  --invalid-border: #e4e5ea;
 
   /* 图表颜色 */
-  --chart-bg: white;
-  --chart-grid: #f0f0f0;
-  --chart-axis: #e0e0e0;
-  --chart-text: #666;
-  --chart-legend-bg: rgba(255, 255, 255, 0.6);
-  --chart-legend-text: #334155;
-  --chart-legend-secondary: #475569;
+  --chart-bg: #ffffff;
+  --chart-grid: #e8e8ed;
+  --chart-axis: #d6d6db;
+  --chart-text: #6e6e73;
+  --chart-legend-bg: rgba(255, 255, 255, 0.85);
+  --chart-legend-text: #52525b;
+  --chart-legend-secondary: #8e8e93;
 
-  /* 阴影 */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* 阴影 - 极简/无阴影 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 22px 48px rgba(0, 0, 0, 0.16);
 
   /* 其他 */
-  --overlay-bg: rgba(255, 255, 255, 0.8);
-  --code-bg: #f8f9fa;
-  --scrollbar-bg: rgba(0, 0, 0, 0.05);
-  --hover-bg: rgba(102, 126, 234, 0.08);
-  --modal-color: rgba(255, 255, 255, 0.95);
-  --success-color: #18a058;
-  --error-color: #d03050;
+  --overlay-bg: rgba(255, 255, 255, 0.72);
+  --code-bg: #f2f2f7;
+  --scrollbar-bg: rgba(0, 0, 0, 0.12);
+  --hover-bg: rgba(0, 0, 0, 0.04);
+  --modal-color: #ffffff;
+  --success-color: #34c759;
+  --error-color: #ff3b30;
+  --selection-bg: rgba(0, 113, 227, 0.18);
+  --selection-text: var(--text-primary);
+  --primary-soft-bg: rgba(0, 113, 227, 0.12);
+  --primary-soft-border: rgba(0, 113, 227, 0.28);
+  --primary-soft-bg-hover: rgba(0, 113, 227, 0.2);
+  --primary-soft-border-hover: rgba(0, 113, 227, 0.4);
+  --primary-soft-text: #0a5bb5;
+  --neutral-btn-bg: #f3f3f6;
+  --neutral-btn-border: #d7d7dd;
+  --neutral-btn-text: #1f1f23;
+  --neutral-btn-bg-hover: #ececf1;
+  --neutral-btn-border-hover: #c9c9d1;
 }
 
 /* 深色主题变量 */
 :root.dark {
-  /* 背景色 - 外层浅色，内容深色 */
-  --bg-primary: #2b3038;
-  --bg-secondary: #323841;
-  --bg-tertiary: #3a414d;
-  --bg-gradient: linear-gradient(135deg, #323841 0%, #2b3038 100%);
+  /* 背景色 - 深邃黑 */
+  --bg-primary: #0c0c0f;
+  --bg-secondary: #141418;
+  --bg-tertiary: #1d1d21;
+  --bg-gradient: radial-gradient(
+      1200px circle at 20% -10%,
+      rgba(44, 44, 48, 0.35),
+      rgba(12, 12, 15, 0.8) 45%,
+      rgba(10, 10, 12, 0.95) 100%
+    ),
+    linear-gradient(180deg, #111116 0%, #0b0b0e 45%, #070708 100%);
 
-  /* 文字颜色 - 浅色高对比 */
-  --text-primary: #e8e8e8;
-  --text-secondary: #b4b4b4;
-  --text-tertiary: #888888;
-  --text-inverse: #1a1d23;
+  /* 文字颜色 */
+  --text-primary: #f5f5f7;
+  --text-secondary: #a1a1a6;
+  --text-tertiary: #7c7c82;
+  --text-inverse: #0b0b0e;
 
   /* 边框颜色 */
-  --border-color: #1a1d23;
-  --border-color-light: rgba(255, 255, 255, 0.06);
+  --border-color: #2a2a31;
+  --border-color-light: #1f1f26;
+  --border-hover: #3b3b44;
 
-  /* 卡片背景 - 深黑色内容 */
-  --card-bg: rgba(15, 17, 21, 0.95);
-  --card-bg-solid: #0f1115;
+  /* 卡片背景 */
+  --card-bg: rgba(28, 28, 30, 0.9);
+  --card-bg-solid: #1c1c1e;
 
-  /* 组件颜色 - 深黑色 */
-  --header-bg: rgba(15, 17, 21, 0.95);
-  --footer-bg: rgba(15, 17, 21, 0.95);
+  /* 组件颜色 */
+  --header-bg: rgba(28, 28, 30, 0.72);
+  --footer-bg: rgba(28, 28, 30, 0.72);
+  --sidebar-bg: rgba(20, 20, 24, 0.86);
 
   /* 状态颜色 */
-  --success-bg: rgba(24, 160, 88, 0.12);
-  --success-border: rgba(24, 160, 88, 0.35);
-  --error-bg: rgba(255, 193, 7, 0.12);
-  --error-border: rgba(255, 193, 7, 0.35);
-  --invalid-bg: rgba(15, 17, 21, 0.6);
-  --invalid-border: #2a2f38;
+  --success-bg: rgba(52, 199, 89, 0.15);
+  --success-border: rgba(52, 199, 89, 0.3);
+  --success-text: #6ddf87;
 
-  /* 图表颜色 - 深黑色背景 */
-  --chart-bg: rgba(12, 14, 18, 0.98);
-  --chart-grid: #2a2f38;
-  --chart-axis: #2a2f38;
-  --chart-text: #b4b4b4;
-  --chart-legend-bg: rgba(15, 17, 21, 0.95);
-  --chart-legend-text: #e8e8e8;
-  --chart-legend-secondary: #b4b4b4;
+  --error-bg: rgba(255, 59, 48, 0.15);
+  --error-border: rgba(255, 59, 48, 0.3);
+  --error-text: #ff7b70;
+
+  --warning-bg: rgba(255, 159, 10, 0.15);
+  --warning-border: rgba(255, 159, 10, 0.3);
+  --warning-text: #ffb657;
+
+  --invalid-bg: #1d1d21;
+  --invalid-border: #2a2a31;
+
+  /* 图表颜色 */
+  --chart-bg: #1c1c1e;
+  --chart-grid: #2c2c33;
+  --chart-axis: #34343c;
+  --chart-text: #a1a1a6;
+  --chart-legend-bg: rgba(28, 28, 30, 0.85);
+  --chart-legend-text: #f5f5f7;
+  --chart-legend-secondary: #a1a1a6;
 
   /* 阴影 */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 16px 36px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 26px 60px rgba(0, 0, 0, 0.6);
 
   /* 其他 */
-  --overlay-bg: rgba(15, 17, 21, 0.8);
-  --code-bg: #0f1115;
-  --scrollbar-bg: rgba(255, 255, 255, 0.1);
-  --hover-bg: rgba(102, 126, 234, 0.15);
-  --modal-color: rgba(15, 17, 21, 0.98);
-  --success-color: #52c41a;
-  --error-color: #ff4d4f;
+  --overlay-bg: rgba(16, 16, 18, 0.72);
+  --code-bg: #1d1d21;
+  --scrollbar-bg: rgba(255, 255, 255, 0.16);
+  --hover-bg: rgba(255, 255, 255, 0.06);
+  --modal-color: #1c1c1e;
+  --success-color: #34c759;
+  --error-color: #ff453a;
+  --selection-bg: rgba(10, 132, 255, 0.28);
+  --selection-text: #ffffff;
+  --primary-soft-bg: rgba(10, 132, 255, 0.22);
+  --primary-soft-border: rgba(10, 132, 255, 0.45);
+  --primary-soft-bg-hover: rgba(10, 132, 255, 0.32);
+  --primary-soft-border-hover: rgba(10, 132, 255, 0.6);
+  --primary-soft-text: #d7eaff;
+  --neutral-btn-bg: #2a2a31;
+  --neutral-btn-border: #3a3a44;
+  --neutral-btn-text: #e6e6eb;
+  --neutral-btn-bg-hover: #33333b;
+  --neutral-btn-border-hover: #4a4a55;
 }
 
-/* 通用颜色（不受主题影响） */
+/* 通用颜色（不受主题影响，或作为基础色板） */
 :root {
-  /* 主题色 */
-  --primary-color: #667eea;
-  --primary-color-hover: #5a6fd8;
-  --primary-color-pressed: #4c63d2;
-  --primary-color-suppl: rgba(102, 126, 234, 0.1);
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  /* 主题色 - 极简黑白 */
+  --primary-color: #0071e3;
+  --primary-color-hover: #0060c9;
+  --primary-color-pressed: #004ea3;
+  --primary-color-suppl: rgba(0, 113, 227, 0.12);
+  --accent-color: var(--primary-color);
+  --accent-soft: var(--primary-color-suppl);
+  
+  /* 移除复杂的渐变 */
+  --primary-gradient: #0071e3;
+  --secondary-gradient: #6e6e73;
+  --success-gradient: #34c759;
+  --warning-gradient: #ff9f0a;
 
-  /* 边框半径 */
-  --border-radius-sm: 8px;
-  --border-radius-md: 12px;
-  --border-radius-lg: 16px;
-  --border-radius-xl: 24px;
+  /* 边框半径 - 更小的圆角 */
+  --border-radius-sm: 6px;
+  --border-radius-md: 10px;
+  --border-radius-lg: 14px;
+  --border-radius-xl: 18px;
 
-  /* 阴影（添加到通用部分） */
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  /* 阴影 */
+  --shadow-xl: 0 32px 60px rgba(0, 0, 0, 0.16);
+}
+
+/* 暗色模式下的主题色反转 */
+:root.dark {
+  --primary-color: #0a84ff;
+  --primary-color-hover: #3698ff;
+  --primary-color-pressed: #0066cc;
+  --primary-color-suppl: rgba(10, 132, 255, 0.2);
+  
+  --primary-gradient: #0a84ff;
 }

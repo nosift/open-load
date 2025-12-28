@@ -60,6 +60,7 @@ var MessagesZhCN = map[string]string{
 	"validation.group_id_required":       "需要提供group_id参数",
 	"validation.invalid_group_id_format": "无效的group_id格式",
 	"validation.keys_text_empty":         "密钥文本不能为空",
+	"validation.invalid_recent_minutes":  "recent_minutes 参数无效",
 	"validation.invalid_group_type":      "无效的分组类型，必须为'standard'或'aggregate'",
 	"validation.sub_groups_required":     "聚合分组必须包含至少一个子分组",
 	"validation.invalid_sub_group_id":    "无效的子分组ID",
@@ -103,6 +104,7 @@ var MessagesZhCN = map[string]string{
 	"database.current_stats_failed":  "获取当前期间统计失败",
 	"database.previous_stats_failed": "获取上一期间统计失败",
 	"database.chart_data_failed":     "获取图表数据失败",
+	"database.model_usage_failed":    "获取模型使用统计失败",
 	"database.group_stats_failed":    "获取部分统计信息失败",
 
 	// Success messages
