@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "GHCR tag (e.g. v1.0.0-custom)"
+        required: false
+        default: "v1.0.0-custom"
 
 permissions:
   contents: read
@@ -33,6 +39,7 @@ jobs:
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=ref,event=tag
+            type=raw,value=${{ inputs.image_tag }},enable=${{ github.event_name == 'workflow_dispatch' && inputs.image_tag != '' }}
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -42,5 +49,5 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VERSION=${{ github.ref_name }}
+            VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || github.ref_name }}
             GOPROXY=https://proxy.golang.org,https://goproxy.cn,direct
