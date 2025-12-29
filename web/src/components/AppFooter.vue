@@ -92,6 +92,17 @@ onMounted(() => {
     <div class="footer-container">
       <!-- 主要信息区 -->
       <div class="footer-main">
+        <span class="project-info">
+          <a href="https://github.com/nosift/gpt-load" target="_blank" rel="noopener noreferrer">
+            <span class="footer-brand">
+              <span class="brand-prefix">Open</span>
+              <span class="brand-suffix">Load</span>
+            </span>
+          </a>
+        </span>
+
+        <n-divider vertical />
+
         <!-- 版本信息 -->
         <div
           class="version-container"
@@ -119,17 +130,6 @@ onMounted(() => {
             </span>
           </span>
         </div>
-
-        <n-divider vertical />
-
-        <span class="project-info">
-          <a href="https://github.com/nosift/gpt-load" target="_blank" rel="noopener noreferrer">
-            <span class="footer-brand">
-              <span class="brand-prefix">Open</span>
-              <span class="brand-suffix">Load</span>
-            </span>
-          </a>
-        </span>
 
         <n-divider vertical />
 
