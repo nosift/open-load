@@ -207,11 +207,12 @@ function handleGroupCreated(group: Group) {
 }
 
 .group-list-container {
-  height: 100%;
+  height: auto;
 }
 
 .group-list-card {
-  height: 100%;
+  height: auto;
+  max-height: calc(100vh - 180px);
   display: flex;
   flex-direction: column;
   background: var(--sidebar-bg);
@@ -232,8 +233,8 @@ function handleGroupCreated(group: Group) {
 }
 
 .groups-section {
-  flex: 1;
-  height: calc(100% - 120px);
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
   padding: 0 10px;
 }
@@ -246,8 +247,6 @@ function handleGroupCreated(group: Group) {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-height: 100%;
-  overflow-y: auto;
   width: 100%;
 }
 

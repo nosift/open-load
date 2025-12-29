@@ -232,19 +232,20 @@ function handleNavigateToGroup(groupId: number) {
 
   .keys-container {
     flex-direction: row;
-    align-items: stretch;
+    align-items: flex-start;
   }
 
   .sidebar {
     width: 260px; /* sidebar width */
     position: sticky;
     top: 96px; /* Header height + padding */
-    height: 100%;
   }
 
   .main-content {
     overflow-y: auto;
     padding-right: 4px;
+    height: 100%;
+    align-self: stretch;
   }
 }
 </style>
