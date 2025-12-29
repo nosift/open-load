@@ -1,6 +1,15 @@
-# GPT-Load（カスタム）
+# Open-Load（カスタム）
 
 この二次開発版は自社運用向けで、元プロジェクトとの差分のみを記載しています。
+
+作者: nosift  
+リポジトリ: https://github.com/nosift/gpt-load
+
+## ライセンス
+
+本项目基于 tbphp/gpt-load 二次开发并发布，原项目采用 MIT License。
+原项目版权声明与许可文本见本仓库 LICENSE 文件。
+本二开版本的新增/修改内容版权归本项目作者所有（如适用）
 
 ## 差分
 

@@ -92,9 +92,9 @@ onMounted(() => {
       <!-- 主要信息区 -->
       <div class="footer-main">
         <span class="project-info">
-          <a href="https://github.com/tbphp/gpt-load" target="_blank" rel="noopener noreferrer">
+          <a href="https://github.com/nosift/gpt-load" target="_blank" rel="noopener noreferrer">
             <span class="footer-brand">
-              <span class="brand-prefix">GPT</span>
+              <span class="brand-prefix">Open</span>
               <span class="brand-suffix">Load</span>
             </span>
           </a>
@@ -138,7 +138,7 @@ onMounted(() => {
           <n-tooltip trigger="hover" placement="top">
             <template #trigger>
               <a
-                href="https://www.gpt-load.com/docs"
+                href="https://github.com/nosift/gpt-load#readme"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="footer-link"
@@ -153,7 +153,7 @@ onMounted(() => {
           <n-tooltip trigger="hover" placement="top">
             <template #trigger>
               <a
-                href="https://github.com/tbphp/gpt-load"
+                href="https://github.com/nosift/gpt-load"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="footer-link"
@@ -168,7 +168,7 @@ onMounted(() => {
           <n-tooltip trigger="hover" placement="top">
             <template #trigger>
               <a
-                href="https://github.com/tbphp/gpt-load/issues"
+                href="https://github.com/nosift/gpt-load/issues"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="footer-link"
@@ -183,7 +183,7 @@ onMounted(() => {
           <n-tooltip trigger="hover" placement="top">
             <template #trigger>
               <a
-                href="https://github.com/tbphp/gpt-load/graphs/contributors"
+                href="https://github.com/nosift/gpt-load/graphs/contributors"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="footer-link"
@@ -216,14 +216,14 @@ onMounted(() => {
         <!-- 版权信息 -->
         <div class="copyright-container">
           <span class="copyright-text">
-            © 2025 by
+            (c) 2025 by
             <a
-              href="https://github.com/tbphp"
+              href="https://github.com/nosift"
               target="_blank"
               rel="noopener noreferrer"
               class="author-link"
             >
-              tbphp
+              nosift
             </a>
           </span>
           <span class="license-text">MIT License</span>

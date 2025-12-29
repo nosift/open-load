@@ -1,6 +1,15 @@
-# GPT-Load（二开）
+# Open-Load（二开）
 
 这是用于我方部署的二开版本，仅保留与原项目的差异。
+
+作者：nosift  
+仓库主页：https://github.com/nosift/gpt-load
+
+## 版权与许可
+
+本项目基于 tbphp/gpt-load 二次开发并发布，原项目采用 MIT License。
+原项目版权声明与许可文本见本仓库 LICENSE 文件。
+本二开版本的新增/修改内容版权归本项目作者所有（如适用）
 
 ## 差异
 

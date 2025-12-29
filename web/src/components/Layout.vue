@@ -32,7 +32,7 @@ const toggleMenu = () => {
       <div class="header-left">
         <div class="brand">
           <span class="brand-name">
-            <span class="brand-prefix">GPT</span>
+            <span class="brand-prefix">Open</span>
             <span class="brand-suffix">Load</span>
           </span>
         </div>
@@ -58,7 +58,7 @@ const toggleMenu = () => {
       <!-- Mobile Drawer -->
       <n-drawer v-model:show="isMenuOpen" :width="260" placement="left">
         <n-drawer-content
-          title="GPT Load"
+          title="Open Load"
           body-content-style="padding: 0; display: flex; flex-direction: column; height: 100%;"
         >
           <div style="flex: 1; overflow-y: auto">
