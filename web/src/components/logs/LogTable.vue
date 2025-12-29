@@ -148,6 +148,60 @@ const formatDateTime = (timestamp: string) => {
   return date.toLocaleString("zh-CN", { hour12: false }).replace(/\//g, "-");
 };
 
+const explainStatusCode = (statusCode?: number | null): string => {
+  const code = typeof statusCode === "number" ? statusCode : null;
+  if (!code) {
+    return "未返回状态码：请求可能在中途失败、被中断或超时。";
+  }
+
+  switch (code) {
+    case 200:
+      return "200：成功，请求正常返回。";
+    case 400:
+      return "400：参数/格式不对（比如模型名、请求体字段有问题）。";
+    case 401:
+      return "401：未授权（Key 无效/过期，或没带正确的鉴权）。";
+    case 402:
+      return "402：余额/额度不足（需要付费或配额用完，常见于 OpenAI/OpenRouter 这类计费渠道）。";
+    case 403:
+      return "403：被拒绝/无权限（可能 Key 没权限、被风控，或你的来源被限制）。";
+    case 404:
+      return "404：接口不存在/路径不对（也可能是上游代理地址配置错）。";
+    case 408:
+      return "408：请求超时（网络慢、上游卡住或并发过高）。";
+    case 409:
+      return "409：冲突（请求状态冲突/资源冲突，需看返回错误信息）。";
+    case 413:
+      return "413：请求体太大（上传/输入太长）。";
+    case 422:
+      return "422：请求能读懂，但内容不合规（参数语义不对）。";
+    case 429:
+      return "429：请求太频繁/被限流（降低并发、稍后重试或升级额度）。";
+    case 500:
+      return "500：上游服务内部错误（通常不是你的参数问题）。";
+    case 502:
+      return "502：网关错误（上游/代理返回异常）。";
+    case 503:
+      return "503：服务不可用（上游繁忙/维护）。";
+    case 504:
+      return "504：网关超时（上游响应太慢）。";
+    default:
+      break;
+  }
+
+  if (code >= 500) {
+    return `${code}：上游/网关异常（多为服务端问题，稍后再试）。`;
+  }
+  if (code >= 400) {
+    return `${code}：请求被拒绝/有错误（优先看“错误信息/响应体”）。`;
+  }
+  if (code >= 300) {
+    return `${code}：重定向（通常由上游/代理导致）。`;
+  }
+
+  return `${code}：状态码说明请参考 HTTP 标准。`;
+};
+
 const toggleKeyVisibility = (row: LogRow) => {
   row.is_key_visible = !row.is_key_visible;
 };
@@ -271,6 +325,19 @@ const allColumnConfigs: ColumnConfig[] = [
     title: t("logs.statusCode"),
     width: 130,
     defaultVisible: true,
+    render: (row: LogRow) => {
+      const code = row.status_code ?? null;
+      const display = code === null ? "-" : String(code);
+      const tip = explainStatusCode(code);
+      return h(
+        NTooltip,
+        { trigger: "hover", placement: "top", delay: 200 },
+        {
+          trigger: () => h("span", { style: "cursor: help" }, display),
+          default: () => tip,
+        }
+      );
+    },
   },
   {
     key: "duration_ms",
@@ -756,6 +823,12 @@ const deselectAllColumns = () => {
                   {{ selectedLog.is_success ? t("common.success") : t("common.error") }} -
                   {{ selectedLog.status_code }}
                 </n-tag>
+              </div>
+              <div class="detail-item-compact">
+                <span class="detail-label-compact">{{ t("logs.statusCode") }}:</span>
+                <span class="detail-value-compact">
+                  {{ explainStatusCode(selectedLog.status_code) }}
+                </span>
               </div>
               <div class="detail-item-compact">
                 <span class="detail-label-compact">{{ t("logs.duration") }}:</span>

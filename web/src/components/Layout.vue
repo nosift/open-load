@@ -32,8 +32,8 @@ const toggleMenu = () => {
       <div class="header-left">
         <div class="brand">
           <span class="brand-name">
-            <span class="brand-prefix">Open</span>
-            <span class="brand-suffix">Load</span>
+            <span class="brand-prefix">GPT</span>
+            <span class="brand-suffix">Open Load</span>
           </span>
         </div>
       </div>
@@ -132,6 +132,8 @@ const toggleMenu = () => {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  font-size: 22px;
+  line-height: 1;
 }
 
 .brand-suffix {

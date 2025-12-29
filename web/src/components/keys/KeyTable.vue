@@ -702,11 +702,7 @@ function getStatusCount(status: string): number {
           {{ t("keys.deleteKey") }}
         </n-button>
         <n-dropdown :options="moreOptions" trigger="click" @select="handleMoreAction">
-          <n-button class="action-btn-custom" size="small">
-            <template #icon>
-              <span style="font-size: 14px">⋯</span>
-            </template>
-          </n-button>
+          <n-button class="action-btn-custom" size="small">验证 <span style="margin-left: 2px">▾</span></n-button>
         </n-dropdown>
       </div>
       <div class="toolbar-right">
