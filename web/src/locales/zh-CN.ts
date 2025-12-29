@@ -61,7 +61,7 @@ export default {
   login: {
     title: "Open Load",
     subtitle: "智能负载均衡管理平台",
-    welcome: "欢迎回来",
+    welcome: "Open Load",
     welcomeDesc: "请输入您的授权密钥以继续",
     authKey: "授权密钥",
     authKeyPlaceholder: "请输入授权密钥",

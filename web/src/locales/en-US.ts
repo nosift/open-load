@@ -61,7 +61,7 @@ export default {
   login: {
     title: "Open Load",
     subtitle: "Intelligent Load Balancing Platform",
-    welcome: "Welcome Back",
+    welcome: "Open Load",
     welcomeDesc: "Please enter your auth key to continue",
     authKey: "Auth Key",
     authKeyPlaceholder: "Enter auth key",

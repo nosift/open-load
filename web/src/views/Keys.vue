@@ -244,10 +244,14 @@ function handleNavigateToGroup(groupId: number) {
   }
 
   .main-content {
-    overflow-y: auto;
-    padding-right: 4px;
+    overflow: hidden;
     height: 100%;
     align-self: stretch;
+  }
+
+  .key-table-section {
+    overflow-y: auto;
+    padding-right: 4px;
   }
 }
 </style>

@@ -61,7 +61,7 @@ export default {
   login: {
     title: "Open Load",
     subtitle: "インテリジェント負荷分散管理プラットフォーム",
-    welcome: "おかえりなさい",
+    welcome: "Open Load",
     welcomeDesc: "続行するには認証キーを入力してください",
     authKey: "認証キー",
     authKeyPlaceholder: "認証キーを入力",

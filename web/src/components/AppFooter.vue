@@ -295,7 +295,7 @@ onMounted(() => {
 
 .footer-brand .brand-prefix {
   font-weight: 700;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 

@@ -44,7 +44,7 @@ async function handleLogin() {
     <div class="login-header">
       <div class="logo-area">
         <h1 class="title">
-          <span class="brand-prefix">GPT</span>
+          <span class="brand-prefix">Open</span>
           <span class="brand-suffix">Load</span>
         </h1>
       </div>
@@ -141,7 +141,7 @@ async function handleLogin() {
 
 .brand-prefix {
   font-weight: 700;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
