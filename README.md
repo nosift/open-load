@@ -18,6 +18,9 @@ Repository: https://github.com/nosift/gpt-load
 - New Model Usage page with donut chart, hover tooltip, and free date-range filter.
 - Model usage stats aggregated from request_logs with success/error/retry counts; empty models filtered.
 - Key management UX polish (view-key modal, layout/scroll fixes, button/input styling).
+- Manual key validation now force-marks keys as valid/invalid; tabs show counts and default to valid keys.
+- Logs: status code tooltips with plain-language explanations (e.g. 402 = insufficient balance/quota).
+- Sidebar layout tuned: left group list stays compact and scrolls internally when long; right side scroll behavior fixed.
 - Removed unified OpenAI aggregate proxy; use per-channel/per-group proxy endpoints.
 
 ## Deployment (Docker)
