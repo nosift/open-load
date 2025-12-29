@@ -47,7 +47,7 @@ const props = defineProps<Props>();
 const keys = ref<KeyRow[]>([]);
 const loading = ref(false);
 const searchText = ref("");
-const statusFilter = ref<"all" | "active" | "invalid">("all");
+const statusFilter = ref<"all" | "active" | "invalid">("active");
 const recentMinutes = ref<number | null>(null);
 const currentPage = ref(1);
 const pageSize = ref(12);
@@ -105,11 +105,12 @@ watch(
   () => props.selectedGroup,
   async newGroup => {
     if (newGroup) {
-      // 检查重置页面是否会触发分页观察者。
-      const willWatcherTrigger = currentPage.value !== 1 || statusFilter.value !== "all";
+      const prevPage = currentPage.value;
+      const prevStatus = statusFilter.value;
       resetPage();
-      // 如果分页观察者不触发，则手动加载。
-      if (!willWatcherTrigger) {
+      const pageChanged = prevPage !== currentPage.value;
+      const statusChanged = prevStatus !== statusFilter.value;
+      if (!pageChanged && !statusChanged) {
         await loadKeys();
       }
     }
@@ -661,7 +662,7 @@ function changePageSize(size: number) {
 function resetPage() {
   currentPage.value = 1;
   searchText.value = "";
-  statusFilter.value = "all";
+  statusFilter.value = "active";
 }
 
 // 获取各状态的数量

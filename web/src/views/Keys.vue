@@ -228,11 +228,13 @@ function handleNavigateToGroup(groupId: number) {
 @media (min-width: 768px) {
   .keys-layout {
     overflow: hidden;
+    height: calc(100vh - 128px);
   }
 
   .keys-container {
     flex-direction: row;
     align-items: flex-start;
+    overflow: hidden;
   }
 
   .sidebar {
