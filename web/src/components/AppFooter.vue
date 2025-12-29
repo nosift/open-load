@@ -261,11 +261,11 @@ onMounted(() => {
 .footer-brand {
   display: inline-flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 6px;
   letter-spacing: -0.01em;
   position: relative;
-  padding-bottom: 6px;
-  font-size: 18px;
+  padding-bottom: 4px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -274,7 +274,7 @@ onMounted(() => {
   content: "";
   position: absolute;
   left: 0;
-  right: -16px;
+  right: -10px;
   bottom: 0;
   height: 2px;
   background: linear-gradient(90deg, var(--primary-color), transparent);

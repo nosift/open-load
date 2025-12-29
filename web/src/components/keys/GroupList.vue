@@ -34,6 +34,23 @@ const showGroupModal = ref(false);
 const groupItemRefs = ref(new Map());
 const showAggregateGroupModal = ref(false);
 
+function getGroupIconText(group: Group): string {
+  if (group.group_type === "aggregate") {
+    return "AG";
+  }
+
+  switch (group.channel_type) {
+    case "openai":
+      return "AI";
+    case "gemini":
+      return "GE";
+    case "anthropic":
+      return "AN";
+    default:
+      return "--";
+  }
+}
+
 const filteredGroups = computed(() => {
   if (!searchText.value.trim()) {
     return props.groups;
@@ -146,11 +163,7 @@ function handleGroupCreated(group: Group) {
               "
             >
               <div class="group-icon">
-                <span v-if="group.group_type === 'aggregate'">🔗</span>
-                <span v-else-if="group.channel_type === 'openai'">🤖</span>
-                <span v-else-if="group.channel_type === 'gemini'">💎</span>
-                <span v-else-if="group.channel_type === 'anthropic'">🧠</span>
-                <span v-else>🔧</span>
+                <span class="group-icon-text">{{ getGroupIconText(group) }}</span>
               </div>
               <div class="group-content">
                 <div class="group-name">{{ getGroupDisplayName(group) }}</div>
@@ -198,7 +211,7 @@ function handleGroupCreated(group: Group) {
 
 <style scoped>
 :deep(.n-card__content) {
-  height: 100%;
+  height: auto;
 }
 
 .groups-section::-webkit-scrollbar {
@@ -212,7 +225,6 @@ function handleGroupCreated(group: Group) {
 
 .group-list-card {
   height: auto;
-  max-height: calc(100vh - 180px);
   display: flex;
   flex-direction: column;
   background: var(--sidebar-bg);
@@ -233,10 +245,17 @@ function handleGroupCreated(group: Group) {
 }
 
 .groups-section {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
+  max-height: calc(100vh - 360px);
   overflow: auto;
   padding: 0 10px;
+}
+
+.group-icon-text {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .empty-container {
