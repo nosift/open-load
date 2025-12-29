@@ -77,6 +77,14 @@ docker compose up -d
 
 ## 发布稳定版本（打 Tag）
 
+发布前检查清单（建议每次都走一遍）：
+
+- 确认功能/UI 已自测通过（尤其是密钥页、日志页、容器部署场景）。
+- 同步更新主页文档：`README_CN.md`（必要时也更新 `README.md`）。
+- `git status` 确认没有未提交修改。
+- 合并/提交后先推送到 `main`，确认 GitHub Actions 的 `latest` 镜像构建成功。
+- 再打 tag 发布稳定版（会触发 tag 镜像构建；版本检查也会更容易识别更新）。
+
 ```bash
 # main 上提交改动后：
 git tag v1.0.1-custom
