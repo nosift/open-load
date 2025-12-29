@@ -53,14 +53,15 @@ const currentPage = ref(1);
 const pageSize = ref(12);
 const total = ref(0);
 const totalPages = ref(0);
+const keyStats = ref<{ total_keys: number; active_keys: number; invalid_keys: number } | null>(null);
 const dialog = useDialog();
 const confirmInput = ref("");
 
 // 状态过滤选项
 const statusOptions = [
-  { label: t("common.all"), value: "all" },
   { label: t("keys.valid"), value: "active" },
   { label: t("keys.invalid"), value: "invalid" },
+  { label: t("common.all"), value: "all" },
 ];
 
 // 更多操作下拉菜单选项
@@ -216,8 +217,24 @@ async function loadKeys() {
     keys.value = result.items as KeyRow[];
     total.value = result.pagination.total_items;
     totalPages.value = result.pagination.total_pages;
+    await loadKeyStats();
   } finally {
     loading.value = false;
+  }
+}
+
+async function loadKeyStats() {
+  if (!props.selectedGroup?.id) {
+    keyStats.value = null;
+    return;
+  }
+
+  try {
+    const stats = await keysApi.getGroupStats(props.selectedGroup.id);
+    keyStats.value = stats?.key_stats ?? null;
+  } catch (error) {
+    console.error("Load key stats failed", error);
+    keyStats.value = null;
   }
 }
 
@@ -649,11 +666,19 @@ function resetPage() {
 
 // 获取各状态的数量
 function getStatusCount(status: string): number {
+  if (keyStats.value) {
+    if (status === "active") {
+      return keyStats.value.active_keys;
+    }
+    if (status === "invalid") {
+      return keyStats.value.invalid_keys;
+    }
+    return keyStats.value.total_keys;
+  }
+
   if (status === "all") {
     return total.value;
   }
-  // 这里可以根据实际情况返回各状态的数量
-  // 目前返回 0，后续可以从 API 获取
   return 0;
 }
 </script>

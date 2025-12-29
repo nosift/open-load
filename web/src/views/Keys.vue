@@ -184,6 +184,7 @@ function handleNavigateToGroup(groupId: number) {
   height: 100%;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .alert-container {
@@ -195,6 +196,7 @@ function handleNavigateToGroup(groupId: number) {
   flex-direction: column;
   gap: 24px;
   height: 100%;
+  min-height: 0;
 }
 
 .sidebar {
@@ -207,7 +209,8 @@ function handleNavigateToGroup(groupId: number) {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  min-width: 0; /* 防止内容溢出 */
+  min-width: 0; /* prevent content overflow */
+  min-height: 0;
 }
 
 .group-info {
@@ -223,15 +226,25 @@ function handleNavigateToGroup(groupId: number) {
 }
 
 @media (min-width: 768px) {
+  .keys-layout {
+    overflow: hidden;
+  }
+
   .keys-container {
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;
   }
 
   .sidebar {
-    width: 260px; /* 稍微加宽侧边栏 */
+    width: 260px; /* sidebar width */
     position: sticky;
     top: 96px; /* Header height + padding */
+    height: 100%;
+  }
+
+  .main-content {
+    overflow-y: auto;
+    padding-right: 4px;
   }
 }
 </style>

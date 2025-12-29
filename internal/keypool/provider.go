@@ -89,6 +89,11 @@ func (p *KeyProvider) SelectKey(groupID uint) (*models.APIKey, error) {
 
 // UpdateStatus 异步地提交一个 Key 状态更新任务。
 func (p *KeyProvider) UpdateStatus(apiKey *models.APIKey, group *models.Group, isSuccess bool, errorMessage string) {
+	p.UpdateStatusWithOptions(apiKey, group, isSuccess, errorMessage, false)
+}
+
+// UpdateStatusWithOptions updates key status with extra behavior controls.
+func (p *KeyProvider) UpdateStatusWithOptions(apiKey *models.APIKey, group *models.Group, isSuccess bool, errorMessage string, forceBlacklist bool) {
 	go func() {
 		keyHashKey := fmt.Sprintf("key:%d", apiKey.ID)
 		activeKeysListKey := fmt.Sprintf("group:%d:active_keys", group.ID)
@@ -98,13 +103,13 @@ func (p *KeyProvider) UpdateStatus(apiKey *models.APIKey, group *models.Group, i
 				logrus.WithFields(logrus.Fields{"keyID": apiKey.ID, "error": err}).Error("Failed to handle key success")
 			}
 		} else {
-			if app_errors.IsUnCounted(errorMessage) {
+			if !forceBlacklist && app_errors.IsUnCounted(errorMessage) {
 				logrus.WithFields(logrus.Fields{
 					"keyID": apiKey.ID,
 					"error": errorMessage,
 				}).Debug("Uncounted error, skipping failure handling")
 			} else {
-				if err := p.handleFailure(apiKey, group, keyHashKey, activeKeysListKey); err != nil {
+				if err := p.handleFailure(apiKey, group, keyHashKey, activeKeysListKey, forceBlacklist); err != nil {
 					logrus.WithFields(logrus.Fields{"keyID": apiKey.ID, "error": err}).Error("Failed to handle key failure")
 				}
 			}
@@ -185,7 +190,7 @@ func (p *KeyProvider) handleSuccess(keyID uint, keyHashKey, activeKeysListKey st
 	})
 }
 
-func (p *KeyProvider) handleFailure(apiKey *models.APIKey, group *models.Group, keyHashKey, activeKeysListKey string) error {
+func (p *KeyProvider) handleFailure(apiKey *models.APIKey, group *models.Group, keyHashKey, activeKeysListKey string, forceBlacklist bool) error {
 	keyDetails, err := p.store.HGetAll(keyHashKey)
 	if err != nil {
 		return fmt.Errorf("failed to get key details from store: %w", err)
@@ -209,7 +214,7 @@ func (p *KeyProvider) handleFailure(apiKey *models.APIKey, group *models.Group, 
 		newFailureCount := failureCount + 1
 
 		updates := map[string]any{"failure_count": newFailureCount}
-		shouldBlacklist := blacklistThreshold > 0 && newFailureCount >= int64(blacklistThreshold)
+		shouldBlacklist := forceBlacklist || (blacklistThreshold > 0 && newFailureCount >= int64(blacklistThreshold))
 		if shouldBlacklist {
 			updates["status"] = models.KeyStatusInvalid
 		}

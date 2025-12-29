@@ -153,7 +153,11 @@ func (s *KeyManualValidationService) validationWorker(wg *sync.WaitGroup, group 
 		keyForValidation := key
 		keyForValidation.KeyValue = decryptedKey
 
-		isValid, _ := s.Validator.ValidateSingleKey(&keyForValidation, group)
+		isValid, _ := s.Validator.ValidateSingleKeyWithOptions(
+			&keyForValidation,
+			group,
+			keypool.KeyValidationOptions{ForceBlacklist: true},
+		)
 		results <- isValid
 	}
 }

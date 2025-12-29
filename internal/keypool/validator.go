@@ -21,6 +21,11 @@ type KeyTestResult struct {
 	Error    string `json:"error,omitempty"`
 }
 
+// KeyValidationOptions controls key validation behavior.
+type KeyValidationOptions struct {
+	ForceBlacklist bool
+}
+
 // KeyValidator provides methods to validate API keys.
 type KeyValidator struct {
 	DB              *gorm.DB
@@ -52,24 +57,18 @@ func NewKeyValidator(params KeyValidatorParams) *KeyValidator {
 
 // ValidateSingleKey performs a validation check on a single API key.
 func (s *KeyValidator) ValidateSingleKey(key *models.APIKey, group *models.Group) (bool, error) {
-	if group.EffectiveConfig.AppUrl == "" {
-		group.EffectiveConfig = s.SettingsManager.GetEffectiveConfig(group.Config)
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(group.EffectiveConfig.KeyValidationTimeoutSeconds)*time.Second)
-	defer cancel()
+	return s.ValidateSingleKeyWithOptions(key, group, KeyValidationOptions{})
+}
 
-	ch, err := s.channelFactory.GetChannel(group)
-	if err != nil {
-		return false, fmt.Errorf("failed to get channel for group %s: %w", group.Name, err)
-	}
-
-	isValid, validationErr := ch.ValidateKey(ctx, key, group)
+// ValidateSingleKeyWithOptions performs a validation check on a single API key with extra behavior controls.
+func (s *KeyValidator) ValidateSingleKeyWithOptions(key *models.APIKey, group *models.Group, options KeyValidationOptions) (bool, error) {
+	isValid, validationErr := s.validateKey(key, group)
 
 	var errorMsg string
 	if !isValid && validationErr != nil {
 		errorMsg = validationErr.Error()
 	}
-	s.keypoolProvider.UpdateStatus(key, group, isValid, errorMsg)
+	s.keypoolProvider.UpdateStatusWithOptions(key, group, isValid, errorMsg, options.ForceBlacklist)
 
 	if !isValid {
 		logrus.WithFields(logrus.Fields{
@@ -86,6 +85,21 @@ func (s *KeyValidator) ValidateSingleKey(key *models.APIKey, group *models.Group
 	}).Debug("Key validation successful")
 
 	return true, nil
+}
+
+func (s *KeyValidator) validateKey(key *models.APIKey, group *models.Group) (bool, error) {
+	if group.EffectiveConfig.AppUrl == "" {
+		group.EffectiveConfig = s.SettingsManager.GetEffectiveConfig(group.Config)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(group.EffectiveConfig.KeyValidationTimeoutSeconds)*time.Second)
+	defer cancel()
+
+	ch, err := s.channelFactory.GetChannel(group)
+	if err != nil {
+		return false, fmt.Errorf("failed to get channel for group %s: %w", group.Name, err)
+	}
+
+	return ch.ValidateKey(ctx, key, group)
 }
 
 // TestMultipleKeys performs a synchronous validation for a list of key values within a specific group.
