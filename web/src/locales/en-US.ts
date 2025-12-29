@@ -575,7 +575,7 @@ export default {
     checking: "Checking...",
     latestVersion: "Latest Version",
     updateAvailable: "Update Available",
-    checkFailed: "Check Failed",
+    checkFailed: "Check failed, click to view releases",
     docs: "Docs",
     officialDocs: "Official Documentation",
     viewSource: "View Source",

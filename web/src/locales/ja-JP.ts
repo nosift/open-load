@@ -576,7 +576,7 @@ export default {
     checking: "確認中...",
     latestVersion: "最新バージョン",
     updateAvailable: "更新あり",
-    checkFailed: "確認失敗",
+    checkFailed: "確認失敗。リリース一覧を見る",
     docs: "ドキュメント",
     officialDocs: "公式ドキュメント",
     viewSource: "ソースを見る",

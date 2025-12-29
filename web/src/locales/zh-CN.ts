@@ -559,7 +559,7 @@ export default {
     checking: "检查中...",
     latestVersion: "最新版本",
     updateAvailable: "有更新",
-    checkFailed: "检查失败",
+    checkFailed: "检查失败，点击查看版本",
     docs: "文档",
     officialDocs: "官方文档",
     viewSource: "查看源码",

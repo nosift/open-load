@@ -32,7 +32,7 @@ const toggleMenu = () => {
       <div class="header-left">
         <div class="brand">
           <span class="brand-name">
-            <span class="brand-prefix">Open</span>
+            <span class="brand-prefix">Load</span>
             <span class="brand-suffix">Load</span>
           </span>
         </div>
