@@ -218,7 +218,7 @@ function handleNavigateToGroup(groupId: number) {
 }
 
 .key-table-section {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -244,14 +244,10 @@ function handleNavigateToGroup(groupId: number) {
   }
 
   .main-content {
-    overflow: hidden;
-    height: 100%;
-    align-self: stretch;
-  }
-
-  .key-table-section {
     overflow-y: auto;
     padding-right: 4px;
+    height: 100%;
+    align-self: stretch;
   }
 }
 </style>

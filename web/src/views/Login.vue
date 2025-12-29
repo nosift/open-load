@@ -43,7 +43,7 @@ async function handleLogin() {
   <div class="login-container">
     <div class="login-header">
       <div class="logo-area">
-        <h1 class="title">
+        <h1 class="brand-name">
           <span class="brand-prefix">Open</span>
           <span class="brand-suffix">Load</span>
         </h1>
@@ -127,11 +127,12 @@ async function handleLogin() {
   gap: 12px;
 }
 
-.title {
-  font-size: 1.4rem;
+.brand-name {
+  font-size: 18px;
   font-weight: 600;
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
   position: relative;
   padding-bottom: 6px;
   display: inline-flex;
@@ -150,11 +151,11 @@ async function handleLogin() {
   letter-spacing: 0.04em;
 }
 
-.title::after {
+.brand-name::after {
   content: "";
   position: absolute;
   left: 0;
-  right: -18px;
+  right: -16px;
   bottom: 0;
   height: 2px;
   background: linear-gradient(90deg, var(--primary-color), transparent);

@@ -2,7 +2,6 @@
 import { versionService, type VersionInfo } from "@/services/version";
 import {
   BugOutline,
-  ChatbubbleOutline,
   CheckmarkCircleOutline,
   DocumentTextOutline,
   LogoGithub,
@@ -72,13 +71,15 @@ const checkVersion = async () => {
   }
 };
 
+const FALLBACK_RELEASE_URL = "https://github.com/nosift/gpt-load/releases";
+
 const handleVersionClick = () => {
-  if (
-    (versionInfo.value.status === "update-available" || versionInfo.value.status === "latest") &&
-    versionInfo.value.releaseUrl
-  ) {
-    window.open(versionInfo.value.releaseUrl, "_blank", "noopener,noreferrer");
+  if (isChecking.value) {
+    return;
   }
+
+  const targetUrl = versionInfo.value.releaseUrl || FALLBACK_RELEASE_URL;
+  window.open(targetUrl, "_blank", "noopener,noreferrer");
 };
 
 onMounted(() => {
@@ -106,8 +107,7 @@ onMounted(() => {
         <div
           class="version-container"
           :class="{
-            'version-clickable':
-              versionInfo.status === 'update-available' || versionInfo.status === 'latest',
+            'version-clickable': !isChecking,
             'version-checking': isChecking,
           }"
           @click="handleVersionClick"
@@ -195,20 +195,6 @@ onMounted(() => {
             {{ t("footer.viewContributors") }}
           </n-tooltip>
 
-          <n-tooltip trigger="hover" placement="top">
-            <template #trigger>
-              <a
-                href="https://t.me/+GHpy5SwEllg3MTUx"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="footer-link"
-              >
-                <n-icon :component="ChatbubbleOutline" :size="14" class="link-icon" />
-                <span>Telegram</span>
-              </a>
-            </template>
-            {{ t("footer.joinGroup") }}
-          </n-tooltip>
         </div>
 
         <n-divider vertical />
@@ -275,21 +261,24 @@ onMounted(() => {
 .footer-brand {
   display: inline-flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 8px;
   letter-spacing: -0.01em;
   position: relative;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .footer-brand::after {
   content: "";
   position: absolute;
   left: 0;
-  right: -10px;
+  right: -16px;
   bottom: 0;
   height: 2px;
-  background: linear-gradient(90deg, currentColor, transparent);
-  opacity: 0.7;
+  background: linear-gradient(90deg, var(--primary-color), transparent);
+  opacity: 0.85;
   border-radius: 999px;
 }
 
