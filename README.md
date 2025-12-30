@@ -2,8 +2,8 @@
 
 This is a customized fork used for our deployment. Only differences from the original project are listed below.
 
-Author: nosift  
-Repository: https://github.com/nosift/gpt-load
+Author: nosift
+Repository: https://github.com/nosift/open-load
 
 ## Attribution
 
@@ -11,17 +11,31 @@ Repository: https://github.com/nosift/gpt-load
 原项目版权声明与许可文本见本仓库 LICENSE 文件。
 本二开版本的新增/修改内容版权归本项目作者所有（如适用）
 
-## Differences
+## Key Differences from Upstream
 
-- UI overhaul (Apple-like minimal visuals, typography, spacing, and shadows).
-- Login page refresh with a text-only logo treatment.
-- New Model Usage page with donut chart, hover tooltip, and free date-range filter.
-- Model usage stats aggregated from request_logs with success/error/retry counts; empty models filtered.
-- Key management UX polish (view-key modal, layout/scroll fixes, button/input styling).
-- Manual key validation now force-marks keys as valid/invalid; tabs show counts and default to valid keys.
-- Logs: status code tooltips with plain-language explanations (e.g. 402 = insufficient balance/quota).
-- Sidebar layout tuned: left group list stays compact and scrolls internally when long; right side scroll behavior fixed.
-- Removed unified OpenAI aggregate proxy; use per-channel/per-group proxy endpoints.
+### UI/UX Enhancements
+- **Apple-inspired UI**: Minimal visuals, refined typography, optimized spacing and shadows
+- **Login page redesign**: Text-only logo treatment for cleaner appearance
+- **Model Usage analytics**: New dedicated page with donut chart, hover tooltips, and flexible date-range filtering
+- **Model usage stats**: Aggregated from request_logs with success/error/retry breakdown; auto-filters empty models
+- **Key management UX**: Enhanced view-key modal, improved layout/scroll behavior, polished button/input styling
+- **Manual validation**: Force-mark keys as valid/invalid; tabs display counts and default to showing valid keys
+- **Status code tooltips**: Plain-language explanations in logs (e.g., 402 = insufficient balance/quota)
+- **Sidebar optimization**: Left group list stays compact with internal scrolling; fixed right-side scroll behavior
+
+### Backend Features (v1.1.0+)
+- **Organization validation**: Auto-detect OpenAI organization verification from API headers
+- **Premium model monitoring**: Track which keys can access high-tier models (e.g., gpt-5.2)
+- **Smart key tracking**: Database fields for `is_organization_key`, `organization_id`, `organization_name`
+- **Non-blocking monitoring**: Logs warnings for non-org keys without disrupting retry mechanism
+- **Configurable premium models**: Set `premium_models` in system settings to monitor specific models
+- **Enhanced visibility**: View organization status in admin UI and API responses
+
+### Architecture Changes
+- **Removed unified OpenAI aggregate**: Use per-channel/per-group proxy endpoints instead
+- **Database migration v1.2.0**: Adds organization validation fields automatically on startup
+
+For detailed organization validation features, see [ORGANIZATION_VALIDATION.md](ORGANIZATION_VALIDATION.md).
 
 ## Deployment (Docker)
 
@@ -30,12 +44,12 @@ cp .env.example .env
 # Edit .env and set AUTH_KEY at minimum.
 
 docker login ghcr.io
-docker pull ghcr.io/nosift/gpt-load:latest
-docker run -d --name gpt-load \
+docker pull ghcr.io/nosift/open-load:latest
+docker run -d --name open-load \
   -p 3001:3001 \
   --env-file .env \
   -v "$(pwd)/data:/app/data" \
-  ghcr.io/nosift/gpt-load:latest
+  ghcr.io/nosift/open-load:latest
 ```
 
 ## Image Tags & Update Policy
@@ -61,19 +75,19 @@ git push origin v1.0.1-custom
 ### Build Locally
 
 ```bash
-docker build -t gpt-load-custom .
-docker run -d --name gpt-load \
+docker build -t open-load-custom .
+docker run -d --name open-load \
   -p 3001:3001 \
   --env-file .env \
   -v "$(pwd)/data:/app/data" \
-  gpt-load-custom
+  open-load-custom
 ```
 
 ## Environment Variables (Common)
 
 - AUTH_KEY: required, protects the UI and admin API.
 - ENCRYPTION_KEY: optional, encrypts API keys at rest.
-- DATABASE_DSN: optional, empty = SQLite at `./data/gpt-load.db`.
+- DATABASE_DSN: optional, empty = SQLite at `./data/open-load.db`.
 - REDIS_DSN: optional, empty = in-memory cache.
 - TZ: timezone, default `Asia/Shanghai`.
 - PORT / HOST: server bind.

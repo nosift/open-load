@@ -3,7 +3,7 @@
 この二次開発版は自社運用向けで、元プロジェクトとの差分のみを記載しています。
 
 作者: nosift  
-リポジトリ: https://github.com/nosift/gpt-load
+リポジトリ: https://github.com/nosift/open-load
 
 ## ライセンス
 
@@ -27,12 +27,12 @@ cp .env.example .env
 # .env を編集し、最低でも AUTH_KEY を設定。
 
 docker login ghcr.io
-docker pull ghcr.io/nosift/gpt-load:latest
-docker run -d --name gpt-load \
+docker pull ghcr.io/nosift/open-load:latest
+docker run -d --name open-load \
   -p 3001:3001 \
   --env-file .env \
   -v "$(pwd)/data:/app/data" \
-  ghcr.io/nosift/gpt-load:latest
+  ghcr.io/nosift/open-load:latest
 ```
 
 ## イメージタグと更新方針
@@ -58,19 +58,19 @@ git push origin v1.0.1-custom
 ### ローカルビルド
 
 ```bash
-docker build -t gpt-load-custom .
-docker run -d --name gpt-load \
+docker build -t open-load-custom .
+docker run -d --name open-load \
   -p 3001:3001 \
   --env-file .env \
   -v "$(pwd)/data:/app/data" \
-  gpt-load-custom
+  open-load-custom
 ```
 
 ## 環境変数（主な項目）
 
 - AUTH_KEY：必須、管理 UI と API を保護。
 - ENCRYPTION_KEY：任意、キーを暗号化して保存。
-- DATABASE_DSN：任意、空なら `./data/gpt-load.db`（SQLite）。
+- DATABASE_DSN：任意、空なら `./data/open-load.db`（SQLite）。
 - REDIS_DSN：任意、空ならメモリキャッシュ。
 - TZ：タイムゾーン、既定 `Asia/Shanghai`。
 - PORT / HOST：サーバーバインド。

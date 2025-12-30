@@ -3,7 +3,7 @@
 这是用于我方部署的二开版本，仅保留与原项目的差异。
 
 作者：nosift  
-仓库主页：https://github.com/nosift/gpt-load
+仓库主页：https://github.com/nosift/open-load
 
 ## 版权与许可
 
@@ -55,12 +55,12 @@ cp .env.example .env
 # 编辑 .env，至少设置 AUTH_KEY。
 
 docker login ghcr.io
-docker pull ghcr.io/nosift/gpt-load:latest
-docker run -d --name gpt-load \
+docker pull ghcr.io/nosift/open-load:latest
+docker run -d --name open-load \
   -p 3001:3001 \
   --env-file .env \
   -v "$(pwd)/data:/app/data" \
-  ghcr.io/nosift/gpt-load:latest
+  ghcr.io/nosift/open-load:latest
 ```
 
 ## 镜像标签与更新策略
@@ -94,19 +94,19 @@ git push origin v1.0.1-custom
 ### 本地构建
 
 ```bash
-docker build -t gpt-load-custom .
-docker run -d --name gpt-load \
+docker build -t open-load-custom .
+docker run -d --name open-load \
   -p 3001:3001 \
   --env-file .env \
   -v "$(pwd)/data:/app/data" \
-  gpt-load-custom
+  open-load-custom
 ```
 
 ## 环境变量（常用）
 
 - AUTH_KEY：必填，用于保护管理端与 API。
 - ENCRYPTION_KEY：可选，用于加密保存密钥。
-- DATABASE_DSN：可选，留空则使用 `./data/gpt-load.db`（SQLite）。
+- DATABASE_DSN：可选，留空则使用 `./data/open-load.db`（SQLite）。
 - REDIS_DSN：可选，留空则使用内存缓存。
 - TZ：时区，默认 `Asia/Shanghai`。
 - PORT / HOST：服务绑定地址。
