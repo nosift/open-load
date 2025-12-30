@@ -74,6 +74,7 @@ func (sm *SystemSettingsManager) Initialize(store store.Store, gm groupManager, 
 		}
 
 		settings.ProxyKeysMap = utils.StringToSet(settings.ProxyKeys, ",")
+		settings.PremiumModelsMap = utils.StringToSet(settings.PremiumModels, ",")
 
 		sm.DisplaySystemConfig(settings)
 

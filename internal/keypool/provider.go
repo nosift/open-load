@@ -99,7 +99,7 @@ func (p *KeyProvider) UpdateStatusWithOptions(apiKey *models.APIKey, group *mode
 		activeKeysListKey := fmt.Sprintf("group:%d:active_keys", group.ID)
 
 		if isSuccess {
-			if err := p.handleSuccess(apiKey.ID, keyHashKey, activeKeysListKey); err != nil {
+			if err := p.handleSuccess(apiKey, keyHashKey, activeKeysListKey); err != nil {
 				logrus.WithFields(logrus.Fields{"keyID": apiKey.ID, "error": err}).Error("Failed to handle key success")
 			}
 		} else {
@@ -144,7 +144,7 @@ func (p *KeyProvider) executeTransactionWithRetry(operation func(tx *gorm.DB) er
 	return err
 }
 
-func (p *KeyProvider) handleSuccess(keyID uint, keyHashKey, activeKeysListKey string) error {
+func (p *KeyProvider) handleSuccess(apiKey *models.APIKey, keyHashKey, activeKeysListKey string) error {
 	keyDetails, err := p.store.HGetAll(keyHashKey)
 	if err != nil {
 		return fmt.Errorf("failed to get key details from store: %w", err)
@@ -159,13 +159,20 @@ func (p *KeyProvider) handleSuccess(keyID uint, keyHashKey, activeKeysListKey st
 
 	return p.executeTransactionWithRetry(func(tx *gorm.DB) error {
 		var key models.APIKey
-		if err := tx.Set("gorm:query_option", "FOR UPDATE").First(&key, keyID).Error; err != nil {
-			return fmt.Errorf("failed to lock key %d for update: %w", keyID, err)
+		if err := tx.Set("gorm:query_option", "FOR UPDATE").First(&key, apiKey.ID).Error; err != nil {
+			return fmt.Errorf("failed to lock key %d for update: %w", apiKey.ID, err)
 		}
 
 		updates := map[string]any{"failure_count": 0}
 		if !isActive {
 			updates["status"] = models.KeyStatusActive
+		}
+
+		// Save organization information if detected
+		if apiKey.IsOrganizationKey {
+			updates["is_organization_key"] = apiKey.IsOrganizationKey
+			updates["organization_id"] = apiKey.OrganizationID
+			updates["organization_name"] = apiKey.OrganizationName
 		}
 
 		if err := tx.Model(&key).Updates(updates).Error; err != nil {
@@ -177,11 +184,11 @@ func (p *KeyProvider) handleSuccess(keyID uint, keyHashKey, activeKeysListKey st
 		}
 
 		if !isActive {
-			logrus.WithField("keyID", keyID).Debug("Key has recovered and is being restored to active pool.")
-			if err := p.store.LRem(activeKeysListKey, 0, keyID); err != nil {
+			logrus.WithField("keyID", apiKey.ID).Debug("Key has recovered and is being restored to active pool.")
+			if err := p.store.LRem(activeKeysListKey, 0, apiKey.ID); err != nil {
 				return fmt.Errorf("failed to LRem key before LPush on recovery: %w", err)
 			}
-			if err := p.store.LPush(activeKeysListKey, keyID); err != nil {
+			if err := p.store.LPush(activeKeysListKey, apiKey.ID); err != nil {
 				return fmt.Errorf("failed to LPush key back to active list: %w", err)
 			}
 		}

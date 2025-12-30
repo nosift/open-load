@@ -173,6 +173,14 @@ func (ps *ProxyServer) executeRequestWithRetry(
 		return
 	}
 
+	// Check premium model permissions
+	requestedModel := channelHandler.ExtractModel(c, finalBodyBytes)
+	if err := ps.checkModelPermissions(requestedModel, apiKey, group); err != nil {
+		response.Error(c, app_errors.NewAPIError(app_errors.ErrBadRequest, err.Error()))
+		ps.logRequest(c, originalGroup, group, apiKey, startTime, http.StatusForbidden, err, isStream, upstreamURL, channelHandler, finalBodyBytes, models.RequestTypeFinal)
+		return
+	}
+
 	// Update request body if it was modified by redirection
 	if !bytes.Equal(finalBodyBytes, bodyBytes) {
 		req.Body = io.NopCloser(bytes.NewReader(finalBodyBytes))
@@ -356,4 +364,40 @@ func (ps *ProxyServer) logRequest(
 	if err := ps.requestLogService.Record(logEntry); err != nil {
 		logrus.Errorf("Failed to record request log: %v", err)
 	}
+}
+
+// checkModelPermissions checks if the API key has permission to use the requested model.
+// Premium models prefer organization-verified keys, but still allow retry mechanism.
+func (ps *ProxyServer) checkModelPermissions(requestedModel string, apiKey *models.APIKey, group *models.Group) error {
+	if requestedModel == "" {
+		return nil
+	}
+
+	// Get effective configuration
+	cfg := group.EffectiveConfig
+
+	// Check if the requested model is in the premium models list
+	if len(cfg.PremiumModelsMap) > 0 {
+		if _, isPremium := cfg.PremiumModelsMap[requestedModel]; isPremium {
+			// This is a premium model
+			if !apiKey.IsOrganizationKey {
+				// Log a warning but don't block the request
+				// Let the upstream API decide and rely on retry mechanism
+				logrus.WithFields(logrus.Fields{
+					"model":  requestedModel,
+					"key_id": apiKey.ID,
+				}).Warn("Using non-organization key for premium model - may fail and trigger retry")
+			} else {
+				logrus.WithFields(logrus.Fields{
+					"model":           requestedModel,
+					"key_id":          apiKey.ID,
+					"organization_id": apiKey.OrganizationID,
+				}).Debug("Premium model access with organization key")
+			}
+		}
+	}
+
+	// Always return nil to allow the request to proceed
+	// The upstream API will validate and the retry mechanism will handle failures
+	return nil
 }

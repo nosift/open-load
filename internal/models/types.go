@@ -111,17 +111,20 @@ type Group struct {
 
 // APIKey 对应 api_keys 表
 type APIKey struct {
-	ID           uint       `gorm:"primaryKey;autoIncrement" json:"id"`
-	KeyValue     string     `gorm:"type:text;not null" json:"key_value"`
-	KeyHash      string     `gorm:"type:varchar(128);index" json:"key_hash"`
-	GroupID      uint       `gorm:"not null;index" json:"group_id"`
-	Status       string     `gorm:"type:varchar(50);not null;default:'active'" json:"status"`
-	Notes        string     `gorm:"type:varchar(255);default:''" json:"notes"`
-	RequestCount int64      `gorm:"not null;default:0" json:"request_count"`
-	FailureCount int64      `gorm:"not null;default:0" json:"failure_count"`
-	LastUsedAt   *time.Time `json:"last_used_at"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
+	ID                   uint       `gorm:"primaryKey;autoIncrement" json:"id"`
+	KeyValue             string     `gorm:"type:text;not null" json:"key_value"`
+	KeyHash              string     `gorm:"type:varchar(128);index" json:"key_hash"`
+	GroupID              uint       `gorm:"not null;index" json:"group_id"`
+	Status               string     `gorm:"type:varchar(50);not null;default:'active'" json:"status"`
+	Notes                string     `gorm:"type:varchar(255);default:''" json:"notes"`
+	RequestCount         int64      `gorm:"not null;default:0" json:"request_count"`
+	FailureCount         int64      `gorm:"not null;default:0" json:"failure_count"`
+	IsOrganizationKey    bool       `gorm:"not null;default:false" json:"is_organization_key"`
+	OrganizationID       string     `gorm:"type:varchar(255);default:''" json:"organization_id"`
+	OrganizationName     string     `gorm:"type:varchar(255);default:''" json:"organization_name"`
+	LastUsedAt           *time.Time `json:"last_used_at"`
+	CreatedAt            time.Time  `json:"created_at"`
+	UpdatedAt            time.Time  `json:"updated_at"`
 }
 
 // RequestType 请求类型常量

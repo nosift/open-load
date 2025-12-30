@@ -122,6 +122,25 @@ func (ch *OpenAIChannel) ValidateKey(ctx context.Context, apiKey *models.APIKey,
 	}
 	defer resp.Body.Close()
 
+	// Check for organization headers in response
+	orgID := resp.Header.Get("openai-organization")
+	if orgID == "" {
+		orgID = resp.Header.Get("x-openai-organization")
+	}
+
+	// Update organization info if detected
+	if orgID != "" {
+		apiKey.IsOrganizationKey = true
+		apiKey.OrganizationID = orgID
+		// Organization name might be in a different header or needs separate API call
+		// For now, we'll just use the ID
+		apiKey.OrganizationName = orgID
+	} else {
+		apiKey.IsOrganizationKey = false
+		apiKey.OrganizationID = ""
+		apiKey.OrganizationName = ""
+	}
+
 	// Any 2xx status code indicates the key is valid.
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		return true, nil
