@@ -163,9 +163,15 @@ func (s *Server) Stats(c *gin.Context) {
 func (s *Server) Chart(c *gin.Context) {
 	groupID := c.Query("groupId")
 
-	now := time.Now()
+	tz := c.DefaultQuery("tz", "Asia/Shanghai")
+	loc, err := time.LoadLocation(tz)
+	if err != nil {
+		loc = time.Local
+	}
+
+	now := time.Now().In(loc)
 	// 修改：从今天的00:00开始，到当前小时（包含）
-	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
 	endHour := now.Truncate(time.Hour).Add(time.Hour) // 当前小时的下一个整点
 
 	var hourlyStats []models.GroupHourlyStat
@@ -184,7 +190,7 @@ func (s *Server) Chart(c *gin.Context) {
 
 	statsByHour := make(map[time.Time]map[string]int64)
 	for _, stat := range hourlyStats {
-		hour := stat.Time.Local().Truncate(time.Hour)
+		hour := stat.Time.In(loc).Truncate(time.Hour)
 		if _, ok := statsByHour[hour]; !ok {
 			statsByHour[hour] = make(map[string]int64)
 		}
