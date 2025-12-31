@@ -87,6 +87,21 @@ func (b *BaseChannel) BuildUpstreamURL(originalURL *url.URL, groupName string) (
 	requestPath := originalURL.Path
 	requestPath = strings.TrimPrefix(requestPath, proxyPrefix)
 
+	// Compatibility: avoid duplicated API version prefix when the upstream base URL already includes it.
+	// e.g. base=https://host/api/v1 + request=/v1/chat/completions => /api/v1/chat/completions
+	basePath := strings.TrimRight(finalURL.Path, "/")
+	if strings.HasSuffix(basePath, "/v1") && strings.HasPrefix(requestPath, "/v1") {
+		requestPath = strings.TrimPrefix(requestPath, "/v1")
+		if requestPath == "" {
+			requestPath = "/"
+		}
+	} else if strings.HasSuffix(basePath, "/v1beta") && strings.HasPrefix(requestPath, "/v1beta") {
+		requestPath = strings.TrimPrefix(requestPath, "/v1beta")
+		if requestPath == "" {
+			requestPath = "/"
+		}
+	}
+
 	finalURL.Path = strings.TrimRight(finalURL.Path, "/") + requestPath
 
 	finalURL.RawQuery = originalURL.RawQuery

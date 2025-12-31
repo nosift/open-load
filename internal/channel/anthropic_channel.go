@@ -88,7 +88,19 @@ func (ch *AnthropicChannel) ValidateKey(ctx context.Context, apiKey *models.APIK
 
 	// Build final URL with path and query parameters
 	finalURL := *upstreamURL
-	finalURL.Path = strings.TrimRight(finalURL.Path, "/") + endpointURL.Path
+	endpointPath := endpointURL.Path
+
+	// Compatibility: avoid duplicated API version prefix when the upstream base URL already includes it.
+	// e.g. base=https://api.anthropic.com/v1 + endpoint=/v1/messages => /v1/messages
+	basePath := strings.TrimRight(finalURL.Path, "/")
+	if strings.HasSuffix(basePath, "/v1") && strings.HasPrefix(endpointPath, "/v1") {
+		endpointPath = strings.TrimPrefix(endpointPath, "/v1")
+		if endpointPath == "" {
+			endpointPath = "/"
+		}
+	}
+
+	finalURL.Path = strings.TrimRight(finalURL.Path, "/") + endpointPath
 	finalURL.RawQuery = endpointURL.RawQuery
 	reqURL := finalURL.String()
 

@@ -104,7 +104,13 @@ func (ch *GeminiChannel) ValidateKey(ctx context.Context, apiKey *models.APIKey,
 	}
 
 	// Safely join the path segments
-	reqURL, err := url.JoinPath(upstreamURL.String(), "v1beta", "models", ch.TestModel+":generateContent")
+	base := strings.TrimRight(upstreamURL.String(), "/")
+	basePath := strings.TrimRight(upstreamURL.Path, "/")
+	parts := []string{"v1beta", "models", ch.TestModel + ":generateContent"}
+	if strings.HasSuffix(basePath, "/v1beta") {
+		parts = []string{"models", ch.TestModel + ":generateContent"}
+	}
+	reqURL, err := url.JoinPath(base, parts...)
 	if err != nil {
 		return false, fmt.Errorf("failed to create gemini validation path: %w", err)
 	}

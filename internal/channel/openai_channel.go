@@ -35,9 +35,47 @@ func newOpenAIChannel(f *Factory, group *models.Group) (ChannelProxy, error) {
 	}, nil
 }
 
+func isOpenRouterURL(u *url.URL) bool {
+	if u == nil {
+		return false
+	}
+	return strings.Contains(strings.ToLower(u.Hostname()), "openrouter.ai")
+}
+
+func applyOpenRouterHeaders(req *http.Request, group *models.Group) {
+	if req == nil || req.URL == nil || !isOpenRouterURL(req.URL) {
+		return
+	}
+
+	// OpenRouter recommends these headers and may enforce them for some (e.g. free) routes.
+	if req.Header.Get("HTTP-Referer") == "" {
+		referer := req.Header.Get("Origin")
+		if referer == "" {
+			referer = req.Header.Get("Referer")
+		}
+		if referer == "" && group != nil {
+			referer = group.EffectiveConfig.AppUrl
+		}
+		if referer != "" {
+			req.Header.Set("HTTP-Referer", referer)
+		}
+	}
+
+	if req.Header.Get("X-Title") == "" && group != nil {
+		title := group.DisplayName
+		if title == "" {
+			title = group.Name
+		}
+		if title != "" {
+			req.Header.Set("X-Title", title)
+		}
+	}
+}
+
 // ModifyRequest sets the Authorization header for the OpenAI service.
 func (ch *OpenAIChannel) ModifyRequest(req *http.Request, apiKey *models.APIKey, group *models.Group) {
 	req.Header.Set("Authorization", "Bearer "+apiKey.KeyValue)
+	applyOpenRouterHeaders(req, group)
 }
 
 // IsStreamRequest checks if the request is for a streaming response using the pre-read body.
@@ -100,7 +138,17 @@ func (ch *OpenAIChannel) ValidateKey(ctx context.Context, apiKey *models.APIKey,
 
 	// Build final URL with path and query parameters
 	finalURL := *upstreamURL
-	finalURL.Path = strings.TrimRight(finalURL.Path, "/") + endpointURL.Path
+	endpointPath := endpointURL.Path
+	// Compatibility: avoid duplicated API version prefix when the upstream base URL already includes it.
+	// e.g. base=https://host/api/v1 + endpoint=/v1/chat/completions => /api/v1/chat/completions
+	basePath := strings.TrimRight(finalURL.Path, "/")
+	if strings.HasSuffix(basePath, "/v1") && strings.HasPrefix(endpointPath, "/v1") {
+		endpointPath = strings.TrimPrefix(endpointPath, "/v1")
+		if endpointPath == "" {
+			endpointPath = "/"
+		}
+	}
+	finalURL.Path = strings.TrimRight(finalURL.Path, "/") + endpointPath
 	finalURL.RawQuery = endpointURL.RawQuery
 	reqURL := finalURL.String()
 
@@ -122,6 +170,7 @@ func (ch *OpenAIChannel) ValidateKey(ctx context.Context, apiKey *models.APIKey,
 	}
 	req.Header.Set("Authorization", "Bearer "+apiKey.KeyValue)
 	req.Header.Set("Content-Type", "application/json")
+	applyOpenRouterHeaders(req, group)
 
 	// Apply custom header rules if available
 	if len(group.HeaderRuleList) > 0 {
