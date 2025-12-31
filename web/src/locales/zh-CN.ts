@@ -570,7 +570,7 @@ export default {
     joinGroup: "加入群组",
   },
   charts: {
-    requestTrend24h: "24小时请求趋势",
+    requestTrend24h: "今日24小时请求趋势",
     allGroups: "全部分组",
   },
   security: {

@@ -85,19 +85,20 @@ const formatTimeLabel = (isoString: string) => {
   });
 };
 
-// 生成可见的X轴标签（避免重叠）
+// 生成可见的X轴标签（固定显示完整24小时）
 const visibleLabels = computed(() => {
   if (!chartData.value) {
     return [];
   }
 
   const labels = chartData.value.labels;
-  const maxLabels = 8; // 最多显示8个标签
-  const step = Math.ceil(labels.length / maxLabels);
+
+  // 固定每3小时显示一个标签: 00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00
+  const step = 3;
 
   return labels
     .map((label, index) => ({ text: formatTimeLabel(label), index }))
-    .filter((_, i) => i % step === 1);
+    .filter((_, i) => i % step === 0);
 });
 
 // 位置计算函数

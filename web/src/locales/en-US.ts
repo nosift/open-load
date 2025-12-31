@@ -586,7 +586,7 @@ export default {
     joinGroup: "Join Group",
   },
   charts: {
-    requestTrend24h: "24h Request Trend",
+    requestTrend24h: "Today's 24h Request Trend",
     allGroups: "All Groups",
   },
   security: {

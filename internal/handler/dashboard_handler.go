@@ -164,12 +164,13 @@ func (s *Server) Chart(c *gin.Context) {
 	groupID := c.Query("groupId")
 
 	now := time.Now()
-	endHour := now.Truncate(time.Hour)
-	startHour := endHour.Add(-23 * time.Hour)
+	// 修改：从今天的00:00开始，到当前小时（包含）
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	endHour := now.Truncate(time.Hour).Add(time.Hour) // 当前小时的下一个整点
 
 	var hourlyStats []models.GroupHourlyStat
 	query := s.DB.Table("group_hourly_stats").
-		Where("time >= ? AND time < ?", startHour, endHour.Add(time.Hour))
+		Where("time >= ? AND time < ?", todayStart, endHour)
 	if groupID != "" {
 		query = query.Where("group_id = ?", groupID)
 	} else {
@@ -194,8 +195,9 @@ func (s *Server) Chart(c *gin.Context) {
 	var labels []string
 	var successData, failureData []int64
 
+	// 固定返回24小时的数据（00:00 - 23:00）
 	for i := range 24 {
-		hour := startHour.Add(time.Duration(i) * time.Hour)
+		hour := todayStart.Add(time.Duration(i) * time.Hour)
 		labels = append(labels, hour.Format(time.RFC3339))
 
 		if data, ok := statsByHour[hour]; ok {

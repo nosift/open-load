@@ -72,6 +72,19 @@ func (ch *OpenAIChannel) ExtractModel(c *gin.Context, bodyBytes []byte) string {
 	return ""
 }
 
+// isOfficialOpenAI checks if the group is using official OpenAI API
+func (ch *OpenAIChannel) isOfficialOpenAI(group *models.Group) bool {
+	upstreamURL := ch.getUpstreamURL()
+	if upstreamURL == nil {
+		return false
+	}
+
+	// Check if the hostname is official OpenAI domain
+	hostname := strings.ToLower(upstreamURL.Hostname())
+	return strings.Contains(hostname, "api.openai.com") ||
+	       strings.Contains(hostname, "openai.azure.com")
+}
+
 // ValidateKey checks if the given API key is valid by making a chat completion request.
 func (ch *OpenAIChannel) ValidateKey(ctx context.Context, apiKey *models.APIKey, group *models.Group) (bool, error) {
 	upstreamURL := ch.getUpstreamURL()
@@ -122,24 +135,29 @@ func (ch *OpenAIChannel) ValidateKey(ctx context.Context, apiKey *models.APIKey,
 	}
 	defer resp.Body.Close()
 
-	// Check for organization headers in response
-	orgID := resp.Header.Get("openai-organization")
-	if orgID == "" {
-		orgID = resp.Header.Get("x-openai-organization")
-	}
+	// Only check for organization headers if using official OpenAI API
+	// Third-party OpenAI-compatible services won't have these headers
+	isOfficialOpenAI := ch.isOfficialOpenAI(group)
 
-	// Update organization info if detected
-	if orgID != "" {
-		apiKey.IsOrganizationKey = true
-		apiKey.OrganizationID = orgID
-		// Organization name might be in a different header or needs separate API call
-		// For now, we'll just use the ID
-		apiKey.OrganizationName = orgID
-	} else {
-		apiKey.IsOrganizationKey = false
-		apiKey.OrganizationID = ""
-		apiKey.OrganizationName = ""
+	if isOfficialOpenAI {
+		orgID := resp.Header.Get("openai-organization")
+		if orgID == "" {
+			orgID = resp.Header.Get("x-openai-organization")
+		}
+
+		// Update organization info if detected
+		if orgID != "" {
+			apiKey.IsOrganizationKey = true
+			apiKey.OrganizationID = orgID
+			apiKey.OrganizationName = orgID
+		} else {
+			apiKey.IsOrganizationKey = false
+			apiKey.OrganizationID = ""
+			apiKey.OrganizationName = ""
+		}
 	}
+	// For non-official OpenAI endpoints, don't modify organization fields
+	// This prevents false negatives for OpenAI-compatible third-party services
 
 	// Any 2xx status code indicates the key is valid.
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {

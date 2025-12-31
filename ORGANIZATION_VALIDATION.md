@@ -33,10 +33,15 @@
 ### 2. 自动检测逻辑
 
 在验证 API Key 时（`ValidateKey`），系统会：
-1. 发送测试请求到 OpenAI API
-2. 检查响应头中的 `openai-organization` 或 `x-openai-organization`
-3. 如果存在组织信息，自动更新数据库中的组织字段
-4. 每次验证都会更新这些信息
+1. **检查是否为官方 OpenAI API**：通过 upstream URL 判断（包含 `api.openai.com` 或 `openai.azure.com`）
+2. **仅对官方 OpenAI API 检测组织信息**：
+   - 发送测试请求到 OpenAI API
+   - 检查响应头中的 `openai-organization` 或 `x-openai-organization`
+   - 如果存在组织信息，自动更新数据库中的组织字段
+3. **第三方 OpenAI 兼容服务跳过检测**：
+   - DeepSeek、智谱 GLM、通义千问等服务不会进行组织检测
+   - 这些服务的 Key 保持默认状态（`is_organization_key = false`）
+   - 避免误判和无意义的警告日志
 
 ### 3. 配置高级模型
 
@@ -181,8 +186,9 @@ DEBUG[2024-01-15T10:58:53+08:00] Premium model access with organization key  key
 ## 注意事项
 
 1. **组织信息检测依赖于 OpenAI API 响应头**
-   - 只有 OpenAI 官方 API 会返回组织信息
-   - 如果使用第三方代理，可能无法检测到组织信息
+   - **只对官方 OpenAI API 进行检测**：系统会检查 upstream URL 是否包含 `api.openai.com` 或 `openai.azure.com`
+   - **第三方 OpenAI 兼容服务不受影响**：DeepSeek、智谱 GLM、通义千问等使用 OpenAI 协议的第三方服务不会进行组织检测
+   - 如果使用第三方代理访问 OpenAI，可能无法检测到组织信息
 
 2. **首次检测**
    - 新添加的 Key 需要经过一次验证才能检测到组织信息

@@ -23,6 +23,9 @@ export interface APIKey {
   status: KeyStatus;
   request_count: number;
   failure_count: number;
+  is_organization_key: boolean;
+  organization_id?: string;
+  organization_name?: string;
   last_used_at?: string;
   created_at: string;
   updated_at: string;

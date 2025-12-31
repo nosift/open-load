@@ -823,6 +823,11 @@ function getStatusCount(status: string): number {
                   {{ t("keys.failuresShort") }}
                   <strong>{{ key.failure_count }}</strong>
                 </span>
+                <span v-if="key.is_organization_key" class="stat-item org-badge">
+                  <n-tag type="success" size="small" :bordered="false">
+                    ✓ 组织验证
+                  </n-tag>
+                </span>
               </div>
               <n-button-group class="key-actions">
                 <n-button
@@ -955,13 +960,58 @@ function getStatusCount(status: string): number {
   <!-- 密钥查看窗口 -->
   <n-modal v-model:show="viewKeyDialogShow" preset="dialog" :title="t('keys.keyValue')">
     <div class="key-viewer">
-      <n-input
-        :value="viewingKey?.key_value || ''"
-        type="textarea"
-        readonly
-        :rows="3"
-        class="key-viewer-input"
-      />
+      <div class="key-viewer-field">
+        <label>密钥值:</label>
+        <n-input
+          :value="viewingKey?.key_value || ''"
+          type="textarea"
+          readonly
+          :rows="3"
+          class="key-viewer-input"
+        />
+      </div>
+      <div v-if="viewingKey" class="key-viewer-info">
+        <div class="info-row">
+          <span class="info-label">组织验证:</span>
+          <span class="info-value">
+            <n-tag
+              v-if="viewingKey.is_organization_key"
+              type="success"
+              size="small"
+              :bordered="false"
+            >
+              ✓ 已通过
+            </n-tag>
+            <n-tag v-else size="small" :bordered="false">✗ 未通过</n-tag>
+          </span>
+        </div>
+        <div v-if="viewingKey.is_organization_key" class="info-row">
+          <span class="info-label">组织 ID:</span>
+          <span class="info-value">{{ viewingKey.organization_id || '-' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">状态:</span>
+          <span class="info-value">
+            <n-tag
+              v-if="viewingKey.status === 'active'"
+              type="success"
+              size="small"
+              :bordered="false"
+            >
+              有效
+            </n-tag>
+            <n-tag v-else size="small" :bordered="false">无效</n-tag>
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">请求次数:</span>
+          <span class="info-value">{{ viewingKey.request_count }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">失败次数:</span>
+          <span class="info-value">{{ viewingKey.failure_count }}</span>
+        </div>
+      </div>
     </div>
     <template #action>
       <n-button @click="viewKeyDialogShow = false">{{ t("common.close") }}</n-button>
@@ -1675,5 +1725,54 @@ function getStatusCount(status: string): number {
     flex-direction: column;
     gap: 12px;
   }
+}
+
+/* 组织验证徽章 */
+.org-badge {
+  margin-left: auto;
+}
+
+/* Key 查看器样式 */
+.key-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.key-viewer-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.key-viewer-info {
+  border-top: 1px solid var(--border-color);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-sm);
+}
+
+.info-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.info-value {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 13px;
 }
 </style>
