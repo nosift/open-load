@@ -98,7 +98,7 @@ const visibleLabels = computed(() => {
 
   return labels
     .map((label, index) => ({ text: formatTimeLabel(label), index }))
-    .filter((_, i) => i % step === 0);
+    .filter(item => item.index % step === 0);
 });
 
 // 位置计算函数
