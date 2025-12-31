@@ -1,6 +1,6 @@
 services:
   gpt-load:
-    image: ghcr.io/nosift/gpt-load:latest
+    image: ghcr.io/nosift/open-load:latest
     # build:
     #   context: .
     #   dockerfile: Dockerfile
