@@ -450,7 +450,10 @@ func (ps *ProxyServer) detectAndUpdateOrganizationInfo(resp *http.Response, apiK
 
 	// If organization header is found, update the key's organization info
 	if orgID != "" {
-		// Skip update if already marked with the same organization
+		// Update if:
+		// 1. Not yet marked as organization key, OR
+		// 2. Organization ID has changed (to fix historical errors)
+		// Skip only if already correctly marked with the same organization
 		if apiKey.IsOrganizationKey && apiKey.OrganizationID == orgID {
 			return
 		}
