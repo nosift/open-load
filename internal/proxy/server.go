@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"gpt-load/internal/channel"
@@ -270,6 +271,9 @@ func (ps *ProxyServer) executeRequestWithRetry(
 	// ps.keyProvider.UpdateStatus(apiKey, group, true) // 请求成功不再重置成功次数，减少IO消耗
 	logrus.Debugf("Request for group %s succeeded on attempt %d with key %s", group.Name, retryCount+1, utils.MaskAPIKey(apiKey.KeyValue))
 
+	// Detect and update organization information from successful responses
+	ps.detectAndUpdateOrganizationInfo(resp, apiKey, group, channelHandler)
+
 	// Check if this is a model list request (needs special handling)
 	if shouldInterceptModelList(c.Request.URL.Path, c.Request.Method) {
 		ps.handleModelListResponse(c, resp, group, channelHandler)
@@ -400,4 +404,72 @@ func (ps *ProxyServer) checkModelPermissions(requestedModel string, apiKey *mode
 	// Always return nil to allow the request to proceed
 	// The upstream API will validate and the retry mechanism will handle failures
 	return nil
+}
+
+// detectAndUpdateOrganizationInfo detects organization information from successful API responses
+// and updates the key's organization status in the database.
+// This allows us to detect organization keys even when validation uses low-tier models.
+func (ps *ProxyServer) detectAndUpdateOrganizationInfo(resp *http.Response, apiKey *models.APIKey, group *models.Group, channelHandler channel.ChannelProxy) {
+	if resp == nil || apiKey == nil || group == nil {
+		return
+	}
+
+	// Only check for organization headers on OpenAI channels
+	if group.ChannelType != "openai" {
+		return
+	}
+
+	// Only check for official OpenAI API (not third-party compatible services)
+	// Parse the upstream URL from the group
+	if len(group.Upstreams) == 0 {
+		return
+	}
+
+	type upstreamDef struct {
+		URL    string `json:"url"`
+		Weight int    `json:"weight"`
+	}
+
+	var upstreamList []upstreamDef
+	if err := json.Unmarshal(group.Upstreams, &upstreamList); err != nil || len(upstreamList) == 0 {
+		return
+	}
+
+	// Check the first upstream URL (they should all be the same service type)
+	hostname := strings.ToLower(upstreamList[0].URL)
+	isOfficialOpenAI := strings.Contains(hostname, "api.openai.com") || strings.Contains(hostname, "openai.azure.com")
+	if !isOfficialOpenAI {
+		return
+	}
+
+	// Check for organization headers in the response
+	orgID := resp.Header.Get("openai-organization")
+	if orgID == "" {
+		orgID = resp.Header.Get("x-openai-organization")
+	}
+
+	// If organization header is found, update the key's organization info
+	if orgID != "" {
+		// Skip update if already marked with the same organization
+		if apiKey.IsOrganizationKey && apiKey.OrganizationID == orgID {
+			return
+		}
+
+		// Use organization ID as name if no separate name header exists
+		orgName := orgID
+
+		// Update the key in the database
+		if err := ps.keyProvider.UpdateOrganizationInfo(apiKey, orgID, orgName); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"key_id": apiKey.ID,
+				"org_id": orgID,
+				"error":  err,
+			}).Warn("Failed to update organization information for key")
+		} else {
+			// Update the in-memory apiKey object so it reflects the new state
+			apiKey.IsOrganizationKey = true
+			apiKey.OrganizationID = orgID
+			apiKey.OrganizationName = orgName
+		}
+	}
 }

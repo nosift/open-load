@@ -197,6 +197,49 @@ func (p *KeyProvider) handleSuccess(apiKey *models.APIKey, keyHashKey, activeKey
 	})
 }
 
+// UpdateOrganizationInfo updates the organization information for an API key.
+// This is called when we detect organization headers in successful API responses.
+func (p *KeyProvider) UpdateOrganizationInfo(apiKey *models.APIKey, organizationID, organizationName string) error {
+	if apiKey == nil || organizationID == "" {
+		return nil
+	}
+
+	// Only update if the information has changed
+	if apiKey.IsOrganizationKey && apiKey.OrganizationID == organizationID {
+		return nil
+	}
+
+	keyHashKey := fmt.Sprintf("key:%d", apiKey.ID)
+
+	return p.executeTransactionWithRetry(func(tx *gorm.DB) error {
+		var key models.APIKey
+		if err := tx.Set("gorm:query_option", "FOR UPDATE").First(&key, apiKey.ID).Error; err != nil {
+			return fmt.Errorf("failed to lock key %d for update: %w", apiKey.ID, err)
+		}
+
+		updates := map[string]any{
+			"is_organization_key": true,
+			"organization_id":     organizationID,
+			"organization_name":   organizationName,
+		}
+
+		if err := tx.Model(&key).Updates(updates).Error; err != nil {
+			return fmt.Errorf("failed to update organization info in DB: %w", err)
+		}
+
+		if err := p.store.HSet(keyHashKey, updates); err != nil {
+			return fmt.Errorf("failed to update organization info in store: %w", err)
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"keyID":           apiKey.ID,
+			"organization_id": organizationID,
+		}).Info("Updated organization information for key")
+
+		return nil
+	})
+}
+
 func (p *KeyProvider) handleFailure(apiKey *models.APIKey, group *models.Group, keyHashKey, activeKeysListKey string, forceBlacklist bool) error {
 	keyDetails, err := p.store.HGetAll(keyHashKey)
 	if err != nil {
