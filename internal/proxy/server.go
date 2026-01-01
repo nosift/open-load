@@ -448,11 +448,11 @@ func (ps *ProxyServer) detectAndUpdateOrganizationInfo(resp *http.Response, apiK
 		orgID = resp.Header.Get("x-openai-organization")
 	}
 
-	// If organization header is found, update the key's organization info
+	// If organization header is found, mark as organization key
 	if orgID != "" {
 		// Update if:
 		// 1. Not yet marked as organization key, OR
-		// 2. Organization ID has changed (to fix historical errors)
+		// 2. Organization ID has changed
 		// Skip only if already correctly marked with the same organization
 		if apiKey.IsOrganizationKey && apiKey.OrganizationID == orgID {
 			return
@@ -473,6 +473,25 @@ func (ps *ProxyServer) detectAndUpdateOrganizationInfo(resp *http.Response, apiK
 			apiKey.IsOrganizationKey = true
 			apiKey.OrganizationID = orgID
 			apiKey.OrganizationName = orgName
+		}
+	} else {
+		// No organization header found - clear incorrect organization marking if present
+		// This fixes keys that were wrongly marked as organization keys during low-tier validation
+		if apiKey.IsOrganizationKey {
+			if err := ps.keyProvider.ClearOrganizationInfo(apiKey); err != nil {
+				logrus.WithFields(logrus.Fields{
+					"key_id": apiKey.ID,
+					"error":  err,
+				}).Warn("Failed to clear incorrect organization information")
+			} else {
+				// Update the in-memory apiKey object
+				apiKey.IsOrganizationKey = false
+				apiKey.OrganizationID = ""
+				apiKey.OrganizationName = ""
+				logrus.WithFields(logrus.Fields{
+					"key_id": apiKey.ID,
+				}).Info("Cleared incorrect organization marking from personal key")
+			}
 		}
 	}
 }

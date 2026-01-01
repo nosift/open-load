@@ -240,6 +240,48 @@ func (p *KeyProvider) UpdateOrganizationInfo(apiKey *models.APIKey, organization
 	})
 }
 
+// ClearOrganizationInfo clears the organization information for an API key.
+// This is called when we detect that a key was incorrectly marked as an organization key.
+func (p *KeyProvider) ClearOrganizationInfo(apiKey *models.APIKey) error {
+	if apiKey == nil {
+		return nil
+	}
+
+	// Only clear if currently marked as organization key
+	if !apiKey.IsOrganizationKey {
+		return nil
+	}
+
+	keyHashKey := fmt.Sprintf("key:%d", apiKey.ID)
+
+	return p.executeTransactionWithRetry(func(tx *gorm.DB) error {
+		var key models.APIKey
+		if err := tx.Set("gorm:query_option", "FOR UPDATE").First(&key, apiKey.ID).Error; err != nil {
+			return fmt.Errorf("failed to lock key %d for update: %w", apiKey.ID, err)
+		}
+
+		updates := map[string]any{
+			"is_organization_key": false,
+			"organization_id":     "",
+			"organization_name":   "",
+		}
+
+		if err := tx.Model(&key).Updates(updates).Error; err != nil {
+			return fmt.Errorf("failed to clear organization info in DB: %w", err)
+		}
+
+		if err := p.store.HSet(keyHashKey, updates); err != nil {
+			return fmt.Errorf("failed to clear organization info in store: %w", err)
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"keyID": apiKey.ID,
+		}).Info("Cleared organization information for key")
+
+		return nil
+	})
+}
+
 func (p *KeyProvider) handleFailure(apiKey *models.APIKey, group *models.Group, keyHashKey, activeKeysListKey string, forceBlacklist bool) error {
 	keyDetails, err := p.store.HGetAll(keyHashKey)
 	if err != nil {
