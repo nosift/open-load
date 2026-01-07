@@ -708,3 +708,22 @@ func pluckIDs(keys []models.APIKey) []uint {
 	}
 	return ids
 }
+
+// UpdateOrganizationStatus updates the organization verification status for a key.
+func (p *KeyProvider) UpdateOrganizationStatus(keyID uint, isOrganizationKey bool) error {
+	updates := map[string]any{
+		"is_organization_key": isOrganizationKey,
+	}
+
+	if err := p.db.Model(&models.APIKey{}).Where("id = ?", keyID).Updates(updates).Error; err != nil {
+		return fmt.Errorf("failed to update organization status for key %d: %w", keyID, err)
+	}
+
+	// Also update in cache
+	keyHashKey := fmt.Sprintf("key:%d", keyID)
+	if err := p.store.HSet(keyHashKey, map[string]any{"is_organization_key": isOrganizationKey}); err != nil {
+		logrus.WithError(err).WithField("key_id", keyID).Warn("Failed to update organization status in cache")
+	}
+
+	return nil
+}

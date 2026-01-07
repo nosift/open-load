@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"gpt-load/internal/channel"
@@ -268,11 +267,12 @@ func (ps *ProxyServer) executeRequestWithRetry(
 		return
 	}
 
-	// ps.keyProvider.UpdateStatus(apiKey, group, true) // 请求成功不再重置成功次数，减少IO消耗
-	logrus.Debugf("Request for group %s succeeded on attempt %d with key %s", group.Name, retryCount+1, utils.MaskAPIKey(apiKey.KeyValue))
+	// Mark key as organization-verified if premium model request succeeded
+	// This is the only reliable way to detect organization verification - actual successful API call
+	successModel := channelHandler.ExtractModel(c, bodyBytes)
+	ps.markOrganizationVerifiedOnSuccess(apiKey, group, successModel)
 
-	// Detect and update organization information from successful responses
-	ps.detectAndUpdateOrganizationInfo(resp, apiKey, group, channelHandler)
+	logrus.Debugf("Request for group %s succeeded on attempt %d with key %s", group.Name, retryCount+1, utils.MaskAPIKey(apiKey.KeyValue))
 
 	// Check if this is a model list request (needs special handling)
 	if shouldInterceptModelList(c.Request.URL.Path, c.Request.Method) {
@@ -406,92 +406,39 @@ func (ps *ProxyServer) checkModelPermissions(requestedModel string, apiKey *mode
 	return nil
 }
 
-// detectAndUpdateOrganizationInfo detects organization information from successful API responses
-// and updates the key's organization status in the database.
-// This allows us to detect organization keys even when validation uses low-tier models.
-func (ps *ProxyServer) detectAndUpdateOrganizationInfo(resp *http.Response, apiKey *models.APIKey, group *models.Group, channelHandler channel.ChannelProxy) {
-	if resp == nil || apiKey == nil || group == nil {
+// markOrganizationVerifiedOnSuccess marks a key as organization-verified when a premium model request succeeds.
+// This is the most reliable way to detect organization verification - an actual successful API call to a premium model.
+func (ps *ProxyServer) markOrganizationVerifiedOnSuccess(apiKey *models.APIKey, group *models.Group, model string) {
+	if model == "" || apiKey == nil || group == nil {
 		return
 	}
 
-	// Only check for organization headers on OpenAI channels
-	if group.ChannelType != "openai" {
+	// Check if the model is a premium model
+	cfg := group.EffectiveConfig
+	if len(cfg.PremiumModelsMap) == 0 {
 		return
 	}
 
-	// Only check for official OpenAI API (not third-party compatible services)
-	// Parse the upstream URL from the group
-	if len(group.Upstreams) == 0 {
+	if _, isPremium := cfg.PremiumModelsMap[model]; !isPremium {
 		return
 	}
 
-	type upstreamDef struct {
-		URL    string `json:"url"`
-		Weight int    `json:"weight"`
-	}
-
-	var upstreamList []upstreamDef
-	if err := json.Unmarshal(group.Upstreams, &upstreamList); err != nil || len(upstreamList) == 0 {
+	// If already marked as organization key, skip
+	if apiKey.IsOrganizationKey {
 		return
 	}
 
-	// Check the first upstream URL (they should all be the same service type)
-	hostname := strings.ToLower(upstreamList[0].URL)
-	isOfficialOpenAI := strings.Contains(hostname, "api.openai.com") || strings.Contains(hostname, "openai.azure.com")
-	if !isOfficialOpenAI {
-		return
-	}
+	// Mark as organization-verified since premium model request succeeded
+	apiKey.IsOrganizationKey = true
+	logrus.WithFields(logrus.Fields{
+		"key_id": apiKey.ID,
+		"model":  model,
+	}).Info("Key marked as organization-verified after successful premium model request")
 
-	// Check for organization headers in the response
-	orgID := resp.Header.Get("openai-organization")
-	if orgID == "" {
-		orgID = resp.Header.Get("x-openai-organization")
-	}
-
-	// If organization header is found, mark as organization key
-	if orgID != "" {
-		// Update if:
-		// 1. Not yet marked as organization key, OR
-		// 2. Organization ID has changed
-		// Skip only if already correctly marked with the same organization
-		if apiKey.IsOrganizationKey && apiKey.OrganizationID == orgID {
-			return
+	// Update in database asynchronously
+	go func() {
+		if err := ps.keyProvider.UpdateOrganizationStatus(apiKey.ID, true); err != nil {
+			logrus.WithError(err).WithField("key_id", apiKey.ID).Error("Failed to update organization status in database")
 		}
-
-		// Use organization ID as name if no separate name header exists
-		orgName := orgID
-
-		// Update the key in the database
-		if err := ps.keyProvider.UpdateOrganizationInfo(apiKey, orgID, orgName); err != nil {
-			logrus.WithFields(logrus.Fields{
-				"key_id": apiKey.ID,
-				"org_id": orgID,
-				"error":  err,
-			}).Warn("Failed to update organization information for key")
-		} else {
-			// Update the in-memory apiKey object so it reflects the new state
-			apiKey.IsOrganizationKey = true
-			apiKey.OrganizationID = orgID
-			apiKey.OrganizationName = orgName
-		}
-	} else {
-		// No organization header found - clear incorrect organization marking if present
-		// This fixes keys that were wrongly marked as organization keys during low-tier validation
-		if apiKey.IsOrganizationKey {
-			if err := ps.keyProvider.ClearOrganizationInfo(apiKey); err != nil {
-				logrus.WithFields(logrus.Fields{
-					"key_id": apiKey.ID,
-					"error":  err,
-				}).Warn("Failed to clear incorrect organization information")
-			} else {
-				// Update the in-memory apiKey object
-				apiKey.IsOrganizationKey = false
-				apiKey.OrganizationID = ""
-				apiKey.OrganizationName = ""
-				logrus.WithFields(logrus.Fields{
-					"key_id": apiKey.ID,
-				}).Info("Cleared incorrect organization marking from personal key")
-			}
-		}
-	}
+	}()
 }

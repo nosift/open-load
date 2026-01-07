@@ -184,29 +184,9 @@ func (ch *OpenAIChannel) ValidateKey(ctx context.Context, apiKey *models.APIKey,
 	}
 	defer resp.Body.Close()
 
-	// Only check for organization headers if using official OpenAI API
-	// Third-party OpenAI-compatible services won't have these headers
-	isOfficialOpenAI := ch.isOfficialOpenAI(group)
-
-	if isOfficialOpenAI {
-		orgID := resp.Header.Get("openai-organization")
-		if orgID == "" {
-			orgID = resp.Header.Get("x-openai-organization")
-		}
-
-		// Update organization info if detected
-		if orgID != "" {
-			apiKey.IsOrganizationKey = true
-			apiKey.OrganizationID = orgID
-			apiKey.OrganizationName = orgID
-		} else {
-			apiKey.IsOrganizationKey = false
-			apiKey.OrganizationID = ""
-			apiKey.OrganizationName = ""
-		}
-	}
-	// For non-official OpenAI endpoints, don't modify organization fields
-	// This prevents false negatives for OpenAI-compatible third-party services
+	// Note: Organization verification status is NOT determined during key validation.
+	// It's only marked as verified when an actual API call to a premium model succeeds.
+	// This is because validation uses a test model, which doesn't require org verification.
 
 	// Any 2xx status code indicates the key is valid.
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
