@@ -163,6 +163,8 @@ var MessagesJaJP = map[string]string{
 	"config.key_validation_concurrency_desc": "バックグラウンドで無効なキーを検証する際の並行数。SQLiteや低性能環境では20以下を維持し、データ不整合を回避してください。",
 	"config.key_validation_timeout":          "キー検証タイムアウト（秒）",
 	"config.key_validation_timeout_desc":     "バックグラウンドで単一キーを検証する際のAPIリクエストタイムアウト（秒）。",
+	"config.premium_models":                  "プレミアムモデル",
+	"config.premium_models_desc":             "組織認証が必要なプレミアムモデルのカンマ区切りリスト。これらのモデルへのリクエストが成功すると、使用されたキーは組織認証済みとしてマークされます。",
 
 	// Category labels
 	"config.category.basic":   "基本設定",

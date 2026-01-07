@@ -163,6 +163,8 @@ var MessagesEnUS = map[string]string{
 	"config.key_validation_concurrency_desc": "Concurrency level for background invalid key validation. Keep below 20 for SQLite or low-performance environments to avoid data consistency issues.",
 	"config.key_validation_timeout":          "Key Validation Timeout (seconds)",
 	"config.key_validation_timeout_desc":     "API request timeout (seconds) when validating a single key in the background.",
+	"config.premium_models":                  "Premium Models",
+	"config.premium_models_desc":             "Comma-separated list of premium models requiring organization verification. Keys used for successful requests to these models will be marked as organization-verified.",
 
 	// Category labels
 	"config.category.basic":   "Basic",
