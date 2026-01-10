@@ -8,9 +8,16 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 
 const stats = ref<DashboardStatsResponse | null>(null);
+
+const getTodayTimestamp = () => {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return now.getTime();
+};
+
 const dateRange = ref<[number, number]>([
-  Date.now() - 6 * 24 * 60 * 60 * 1000,
-  Date.now(),
+  getTodayTimestamp() - 6 * 24 * 60 * 60 * 1000,
+  getTodayTimestamp(),
 ]);
 
 const usage = computed(() => stats.value?.model_usage_24h ?? []);
@@ -181,12 +188,29 @@ watch(dateRange, fetchStats, { immediate: true });
               </div>
             </div>
             <div class="range-toggle">
-              <span class="range-label">{{ t("modelUsage.timezoneLabel") }}</span>
               <n-date-picker
                 v-model:value="dateRange"
                 type="daterange"
                 size="small"
                 :clearable="false"
+                :shortcuts="{
+                  [t('dashboard.today')]: () => {
+                    const today = getTodayTimestamp();
+                    return [today, today];
+                  },
+                  [t('dashboard.yesterday')]: () => {
+                    const yesterday = getTodayTimestamp() - 24 * 60 * 60 * 1000;
+                    return [yesterday, yesterday];
+                  },
+                  [t('dashboard.last7days')]: () => {
+                    const today = getTodayTimestamp();
+                    return [today - 6 * 24 * 60 * 60 * 1000, today];
+                  },
+                  [t('dashboard.last30days')]: () => {
+                    const today = getTodayTimestamp();
+                    return [today - 29 * 24 * 60 * 60 * 1000, today];
+                  },
+                }"
               />
             </div>
           </div>
@@ -350,16 +374,6 @@ watch(dateRange, fetchStats, { immediate: true });
 .range-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
-  border-radius: 12px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-}
-
-.range-label {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
 }
 
 .panel-content {
