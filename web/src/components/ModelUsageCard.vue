@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DashboardStatsResponse, ModelUsageItem } from "@/types/models";
 import { getModelBadge } from "@/utils/model-badge";
-import { NCard, NEmpty } from "naive-ui";
+import { NCard, NEmpty, NTooltip } from "naive-ui";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -20,7 +20,11 @@ const usage7d = computed(() => props.stats?.model_usage_7d ?? []);
 const usage = computed(() => (range.value === "24h" ? usage24h.value : usage7d.value));
 const hasStats = computed(() => props.stats !== null);
 
-const formatCount = (value: number) => {
+const formatCount = (value: number | undefined) => {
+  if (!value) return "0";
+  if (value >= 1000000) {
+    return `${(value / 1000000).toFixed(1)}M`;
+  }
   if (value >= 1000) {
     return `${(value / 1000).toFixed(1)}K`;
   }
@@ -44,17 +48,17 @@ const getDisplayName = (item: ModelUsageItem) => {
       </div>
       <div class="header-controls">
         <div class="cf-toggle-container">
-          <button 
-            class="cf-toggle-btn" 
-            :class="{ active: range === '24h' }" 
+          <button
+            class="cf-toggle-btn"
+            :class="{ active: range === '24h' }"
             @click="range = '24h'"
           >
             {{ t("dashboard.modelUsage24h") }}
           </button>
           <div class="cf-divider"></div>
-          <button 
-            class="cf-toggle-btn" 
-            :class="{ active: range === '7d' }" 
+          <button
+            class="cf-toggle-btn"
+            :class="{ active: range === '7d' }"
             @click="range = '7d'"
           >
             {{ t("dashboard.modelUsage7d") }}
@@ -77,9 +81,28 @@ const getDisplayName = (item: ModelUsageItem) => {
         </span>
         <div class="model-usage-info">
           <div class="model-usage-name">{{ getDisplayName(item) }}</div>
-          <div class="model-usage-count">
-            <span class="model-usage-number">{{ formatCount(item.request_count) }}</span>
-            <span class="model-usage-label">{{ t("dashboard.requests") }}</span>
+          <div class="model-usage-stats">
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <span class="stat-item">
+                  <span class="stat-value">{{ formatCount(item.request_count) }}</span>
+                  <span class="stat-label">{{ t("dashboard.requests") }}</span>
+                </span>
+              </template>
+              {{ t("dashboard.requests") }}: {{ item.request_count?.toLocaleString() ?? 0 }}
+            </n-tooltip>
+            <span class="stat-divider">|</span>
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <span class="stat-item">
+                  <span class="stat-value">{{ formatCount(item.total_tokens) }}</span>
+                  <span class="stat-label">Tokens</span>
+                </span>
+              </template>
+              {{ t("dashboard.promptTokens") }}: {{ item.prompt_tokens?.toLocaleString() ?? 0 }}<br>
+              {{ t("dashboard.completionTokens") }}: {{ item.completion_tokens?.toLocaleString() ?? 0 }}<br>
+              {{ t("dashboard.totalTokens") }}: {{ item.total_tokens?.toLocaleString() ?? 0 }}
+            </n-tooltip>
           </div>
         </div>
       </div>
@@ -96,7 +119,6 @@ const getDisplayName = (item: ModelUsageItem) => {
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
   backdrop-filter: blur(16px);
-  animation: fadeInUp 0.2s ease-out 0.1s both;
 }
 
 .model-usage-header {
@@ -181,7 +203,7 @@ const getDisplayName = (item: ModelUsageItem) => {
 
 .model-usage-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
 }
 
@@ -217,6 +239,7 @@ const getDisplayName = (item: ModelUsageItem) => {
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  flex: 1;
 }
 
 .model-usage-name {
@@ -228,22 +251,35 @@ const getDisplayName = (item: ModelUsageItem) => {
   white-space: nowrap;
 }
 
-.model-usage-count {
+.model-usage-stats {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
-  color: var(--text-secondary);
+  align-items: center;
+  gap: 8px;
   font-size: 0.8rem;
 }
 
-.model-usage-number {
-  font-weight: 700;
-  color: var(--text-primary);
-  font-size: 1rem;
+.stat-item {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  cursor: help;
 }
 
-.model-usage-label {
+.stat-value {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-feature-settings: "tnum";
+}
+
+.stat-label {
   color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.stat-divider {
+  color: var(--border-color);
+  font-size: 0.7rem;
 }
 
 .model-badge {
@@ -289,17 +325,6 @@ const getDisplayName = (item: ModelUsageItem) => {
   .model-usage-header {
     flex-direction: column;
     align-items: flex-start;
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 </style>

@@ -135,26 +135,29 @@ const (
 
 // RequestLog 对应 request_logs 表
 type RequestLog struct {
-	ID              string    `gorm:"type:varchar(36);primaryKey" json:"id"`
-	Timestamp       time.Time `gorm:"not null;index" json:"timestamp"`
-	GroupID         uint      `gorm:"not null;index" json:"group_id"`
-	GroupName       string    `gorm:"type:varchar(255);index" json:"group_name"`
-	ParentGroupID   uint      `gorm:"index" json:"parent_group_id"`
-	ParentGroupName string    `gorm:"type:varchar(255);index" json:"parent_group_name"`
-	KeyValue        string    `gorm:"type:text" json:"key_value"`
-	KeyHash         string    `gorm:"type:varchar(128);index" json:"key_hash"`
-	Model           string    `gorm:"type:varchar(255);index" json:"model"`
-	IsSuccess       bool      `gorm:"not null" json:"is_success"`
-	SourceIP        string    `gorm:"type:varchar(64)" json:"source_ip"`
-	StatusCode      int       `gorm:"not null" json:"status_code"`
-	RequestPath     string    `gorm:"type:varchar(500)" json:"request_path"`
-	Duration        int64     `gorm:"not null" json:"duration_ms"`
-	ErrorMessage    string    `gorm:"type:text" json:"error_message"`
-	UserAgent       string    `gorm:"type:varchar(512)" json:"user_agent"`
-	RequestType     string    `gorm:"type:varchar(20);not null;default:'final';index" json:"request_type"`
-	UpstreamAddr    string    `gorm:"type:varchar(500)" json:"upstream_addr"`
-	IsStream        bool      `gorm:"not null" json:"is_stream"`
-	RequestBody     string    `gorm:"type:text" json:"request_body"`
+	ID               string    `gorm:"type:varchar(36);primaryKey" json:"id"`
+	Timestamp        time.Time `gorm:"not null;index" json:"timestamp"`
+	GroupID          uint      `gorm:"not null;index" json:"group_id"`
+	GroupName        string    `gorm:"type:varchar(255);index" json:"group_name"`
+	ParentGroupID    uint      `gorm:"index" json:"parent_group_id"`
+	ParentGroupName  string    `gorm:"type:varchar(255);index" json:"parent_group_name"`
+	KeyValue         string    `gorm:"type:text" json:"key_value"`
+	KeyHash          string    `gorm:"type:varchar(128);index" json:"key_hash"`
+	Model            string    `gorm:"type:varchar(255);index" json:"model"`
+	IsSuccess        bool      `gorm:"not null" json:"is_success"`
+	SourceIP         string    `gorm:"type:varchar(64)" json:"source_ip"`
+	StatusCode       int       `gorm:"not null" json:"status_code"`
+	RequestPath      string    `gorm:"type:varchar(500)" json:"request_path"`
+	Duration         int64     `gorm:"not null" json:"duration_ms"`
+	ErrorMessage     string    `gorm:"type:text" json:"error_message"`
+	UserAgent        string    `gorm:"type:varchar(512)" json:"user_agent"`
+	RequestType      string    `gorm:"type:varchar(20);not null;default:'final';index" json:"request_type"`
+	UpstreamAddr     string    `gorm:"type:varchar(500)" json:"upstream_addr"`
+	IsStream         bool      `gorm:"not null" json:"is_stream"`
+	RequestBody      string    `gorm:"type:text" json:"request_body"`
+	PromptTokens     int64     `gorm:"not null;default:0" json:"prompt_tokens"`
+	CompletionTokens int64     `gorm:"not null;default:0" json:"completion_tokens"`
+	TotalTokens      int64     `gorm:"not null;default:0" json:"total_tokens"`
 }
 
 // StatCard 用于仪表盘的单个统计卡片数据
@@ -180,9 +183,20 @@ type DashboardStatsResponse struct {
 	RPM              StatCard          `json:"rpm"`
 	RequestCount     StatCard          `json:"request_count"`
 	ErrorRate        StatCard          `json:"error_rate"`
+	TokenStats       TokenStats        `json:"token_stats"`
 	SecurityWarnings []SecurityWarning `json:"security_warnings"`
 	ModelUsage24h    []ModelUsageItem  `json:"model_usage_24h"`
 	ModelUsage7d     []ModelUsageItem  `json:"model_usage_7d"`
+}
+
+// TokenStats 用于tokens统计数据
+type TokenStats struct {
+	PromptTokens24h     int64 `json:"prompt_tokens_24h"`
+	CompletionTokens24h int64 `json:"completion_tokens_24h"`
+	TotalTokens24h      int64 `json:"total_tokens_24h"`
+	PromptTokens7d      int64 `json:"prompt_tokens_7d"`
+	CompletionTokens7d  int64 `json:"completion_tokens_7d"`
+	TotalTokens7d       int64 `json:"total_tokens_7d"`
 }
 
 // ChartDataset 用于图表的数据集
@@ -199,11 +213,14 @@ type ChartData struct {
 }
 
 type ModelUsageItem struct {
-	Model        string `json:"model"`
-	RequestCount int64  `json:"request_count"`
-	SuccessCount int64  `json:"success_count"`
-	FailureCount int64  `json:"failure_count"`
-	RetryCount   int64  `json:"retry_count"`
+	Model            string `json:"model"`
+	RequestCount     int64  `json:"request_count"`
+	SuccessCount     int64  `json:"success_count"`
+	FailureCount     int64  `json:"failure_count"`
+	RetryCount       int64  `json:"retry_count"`
+	PromptTokens     int64  `json:"prompt_tokens"`
+	CompletionTokens int64  `json:"completion_tokens"`
+	TotalTokens      int64  `json:"total_tokens"`
 }
 
 // GroupHourlyStat 对应 group_hourly_stats 表，用于存储每个分组每小时的请求统计

@@ -16,7 +16,12 @@ func MigrateDatabase(db *gorm.DB) error {
 	}
 
 	// Run v1.2.0 migration
-	return V1_2_0_AddOrganizationFields(db)
+	if err := V1_2_0_AddOrganizationFields(db); err != nil {
+		return err
+	}
+
+	// Run v1.3.0 migration
+	return V1_3_0_AddTokensColumns(db)
 }
 
 // HandleLegacyIndexes removes old indexes from previous versions to prevent migration errors

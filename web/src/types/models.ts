@@ -235,6 +235,19 @@ export interface ModelUsageItem {
   success_count?: number;
   failure_count?: number;
   retry_count?: number;
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  total_tokens?: number;
+}
+
+// Token 统计数据
+export interface TokenStats {
+  prompt_tokens_24h: number;
+  completion_tokens_24h: number;
+  total_tokens_24h: number;
+  prompt_tokens_7d: number;
+  completion_tokens_7d: number;
+  total_tokens_7d: number;
 }
 
 // 仪表盘基础统计响应
@@ -243,6 +256,7 @@ export interface DashboardStatsResponse {
   rpm: StatCard;
   request_count: StatCard;
   error_rate: StatCard;
+  token_stats: TokenStats;
   security_warnings: SecurityWarning[];
   model_usage_24h?: ModelUsageItem[];
   model_usage_7d?: ModelUsageItem[];

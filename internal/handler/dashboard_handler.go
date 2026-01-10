@@ -131,6 +131,18 @@ func (s *Server) Stats(c *gin.Context) {
 		return
 	}
 
+	// 获取 tokens 统计
+	tokenStats24h, err := s.getTokenStats(modelUsageStart, modelUsageEnd)
+	if err != nil {
+		response.ErrorI18nFromAPIError(c, app_errors.ErrDatabase, "database.token_stats_failed")
+		return
+	}
+	tokenStats7d, err := s.getTokenStats(modelUsage7dStart, modelUsageEnd)
+	if err != nil {
+		response.ErrorI18nFromAPIError(c, app_errors.ErrDatabase, "database.token_stats_failed")
+		return
+	}
+
 	// 获取安全警告信息
 	securityWarnings := s.getSecurityWarnings(c)
 
@@ -150,6 +162,14 @@ func (s *Server) Stats(c *gin.Context) {
 			Value:         currentErrorRate,
 			Trend:         errorRateTrend,
 			TrendIsGrowth: errorRateTrendIsGrowth,
+		},
+		TokenStats: models.TokenStats{
+			PromptTokens24h:     tokenStats24h.PromptTokens,
+			CompletionTokens24h: tokenStats24h.CompletionTokens,
+			TotalTokens24h:      tokenStats24h.TotalTokens,
+			PromptTokens7d:      tokenStats7d.PromptTokens,
+			CompletionTokens7d:  tokenStats7d.CompletionTokens,
+			TotalTokens7d:       tokenStats7d.TotalTokens,
 		},
 		SecurityWarnings: securityWarnings,
 		ModelUsage24h:    modelUsage24h,
@@ -258,7 +278,10 @@ func (s *Server) getModelUsageStats(startTime, endTime time.Time, limit int) ([]
 			SUM(CASE WHEN request_type = ? THEN 1 ELSE 0 END) as request_count,
 			SUM(CASE WHEN request_type = ? AND is_success = 1 THEN 1 ELSE 0 END) as success_count,
 			SUM(CASE WHEN request_type = ? AND is_success = 0 THEN 1 ELSE 0 END) as failure_count,
-			SUM(CASE WHEN request_type = ? THEN 1 ELSE 0 END) as retry_count
+			SUM(CASE WHEN request_type = ? THEN 1 ELSE 0 END) as retry_count,
+			COALESCE(SUM(prompt_tokens), 0) as prompt_tokens,
+			COALESCE(SUM(completion_tokens), 0) as completion_tokens,
+			COALESCE(SUM(total_tokens), 0) as total_tokens
 		`, models.RequestTypeFinal, models.RequestTypeFinal, models.RequestTypeFinal, models.RequestTypeRetry).
 		Where("timestamp >= ? AND timestamp < ?", startTime, endTime).
 		Where("model IS NOT NULL AND model <> ''").
@@ -280,6 +303,28 @@ func (s *Server) getModelUsageStats(startTime, endTime time.Time, limit int) ([]
 type rpmStatResult struct {
 	CurrentRequests  int64
 	PreviousRequests int64
+}
+
+type tokenStatResult struct {
+	PromptTokens     int64
+	CompletionTokens int64
+	TotalTokens      int64
+}
+
+func (s *Server) getTokenStats(startTime, endTime time.Time) (tokenStatResult, error) {
+	var result tokenStatResult
+	err := s.DB.Model(&models.RequestLog{}).
+		Select(`
+			COALESCE(SUM(prompt_tokens), 0) as prompt_tokens,
+			COALESCE(SUM(completion_tokens), 0) as completion_tokens,
+			COALESCE(SUM(total_tokens), 0) as total_tokens
+		`).
+		Where("timestamp >= ? AND timestamp < ?", startTime, endTime).
+		Where("request_type = ?", models.RequestTypeFinal).
+		Where("group_id NOT IN (?)",
+			s.DB.Table("groups").Select("id").Where("group_type = ?", "aggregate")).
+		Scan(&result).Error
+	return result, err
 }
 
 func (s *Server) getRPMStats(now time.Time) (models.StatCard, error) {

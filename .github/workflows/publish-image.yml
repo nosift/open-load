@@ -24,6 +24,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Get version
+        id: version
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          elif [[ -f VERSION ]]; then
+            echo "version=$(cat VERSION | tr -d '\n')" >> $GITHUB_OUTPUT
+          else
+            echo "version=1.0.0" >> $GITHUB_OUTPUT
+          fi
+
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -52,5 +63,5 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || github.ref_name }}
+            VERSION=${{ github.event_name == 'workflow_dispatch' && inputs.image_tag || steps.version.outputs.version }}
             GOPROXY=https://proxy.golang.org,https://goproxy.cn,direct
