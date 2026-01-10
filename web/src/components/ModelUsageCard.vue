@@ -1,23 +1,21 @@
 <script setup lang="ts">
 import type { DashboardStatsResponse, ModelUsageItem } from "@/types/models";
 import { getModelBadge } from "@/utils/model-badge";
-import { NCard, NEmpty, NTooltip } from "naive-ui";
-import { computed, ref } from "vue";
+import { NCard, NEmpty, NSpin, NTooltip } from "naive-ui";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
 interface Props {
   stats: DashboardStatsResponse | null;
+  loading?: boolean;
 }
 
 const props = defineProps<Props>();
 
-const range = ref<"24h" | "7d">("24h");
-
-const usage24h = computed(() => props.stats?.model_usage_24h ?? []);
-const usage7d = computed(() => props.stats?.model_usage_7d ?? []);
-const usage = computed(() => (range.value === "24h" ? usage24h.value : usage7d.value));
+// 直接使用选定日期范围的数据 (24h 字段现在代表选定范围)
+const usage = computed(() => props.stats?.model_usage_24h ?? []);
 const hasStats = computed(() => props.stats !== null);
 
 const formatCount = (value: number | undefined) => {
@@ -41,74 +39,57 @@ const getDisplayName = (item: ModelUsageItem) => {
 
 <template>
   <n-card :bordered="false" class="model-usage-card">
-    <div class="model-usage-header">
-      <div>
-        <div class="model-usage-title">{{ t("dashboard.modelUsage") }}</div>
-        <div class="model-usage-subtitle">{{ t("dashboard.requestStatistics") }}</div>
-      </div>
-      <div class="header-controls">
-        <div class="cf-toggle-container">
-          <button
-            class="cf-toggle-btn"
-            :class="{ active: range === '24h' }"
-            @click="range = '24h'"
-          >
-            {{ t("dashboard.modelUsage24h") }}
-          </button>
-          <div class="cf-divider"></div>
-          <button
-            class="cf-toggle-btn"
-            :class="{ active: range === '7d' }"
-            @click="range = '7d'"
-          >
-            {{ t("dashboard.modelUsage7d") }}
-          </button>
+    <n-spin :show="loading">
+      <div class="model-usage-header">
+        <div>
+          <div class="model-usage-title">{{ t("dashboard.modelUsage") }}</div>
+          <div class="model-usage-subtitle">{{ t("dashboard.requestStatistics") }}</div>
         </div>
       </div>
-    </div>
 
-    <div v-if="usage.length" class="model-usage-grid">
-      <div
-        v-for="(item, index) in usage"
-        :key="`${item.model || 'unknown'}-${index}`"
-        class="model-usage-item"
-      >
-        <span
-          :class="['model-badge', getModelBadge(item.model, t('dashboard.modelUsage')).className]"
-          :title="getModelBadge(item.model, t('dashboard.modelUsage')).label"
+      <div v-if="usage.length" class="model-usage-grid">
+        <div
+          v-for="(item, index) in usage"
+          :key="`${item.model || 'unknown'}-${index}`"
+          class="model-usage-item"
         >
-          {{ getModelBadge(item.model, t("dashboard.modelUsage")).short }}
-        </span>
-        <div class="model-usage-info">
-          <div class="model-usage-name">{{ getDisplayName(item) }}</div>
-          <div class="model-usage-stats">
-            <n-tooltip trigger="hover">
-              <template #trigger>
-                <span class="stat-item">
-                  <span class="stat-value">{{ formatCount(item.request_count) }}</span>
-                  <span class="stat-label">{{ t("dashboard.requests") }}</span>
-                </span>
-              </template>
-              {{ t("dashboard.requests") }}: {{ item.request_count?.toLocaleString() ?? 0 }}
-            </n-tooltip>
-            <span class="stat-divider">|</span>
-            <n-tooltip trigger="hover">
-              <template #trigger>
-                <span class="stat-item">
-                  <span class="stat-value">{{ formatCount(item.total_tokens) }}</span>
-                  <span class="stat-label">Tokens</span>
-                </span>
-              </template>
-              {{ t("dashboard.promptTokens") }}: {{ item.prompt_tokens?.toLocaleString() ?? 0 }}<br>
-              {{ t("dashboard.completionTokens") }}: {{ item.completion_tokens?.toLocaleString() ?? 0 }}<br>
-              {{ t("dashboard.totalTokens") }}: {{ item.total_tokens?.toLocaleString() ?? 0 }}
-            </n-tooltip>
+          <span
+            :class="['model-badge', getModelBadge(item.model, t('dashboard.modelUsage')).className]"
+            :title="getModelBadge(item.model, t('dashboard.modelUsage')).label"
+          >
+            {{ getModelBadge(item.model, t("dashboard.modelUsage")).short }}
+          </span>
+          <div class="model-usage-info">
+            <div class="model-usage-name">{{ getDisplayName(item) }}</div>
+            <div class="model-usage-stats">
+              <n-tooltip trigger="hover">
+                <template #trigger>
+                  <span class="stat-item">
+                    <span class="stat-value">{{ formatCount(item.request_count) }}</span>
+                    <span class="stat-label">{{ t("dashboard.requests") }}</span>
+                  </span>
+                </template>
+                {{ t("dashboard.requests") }}: {{ item.request_count?.toLocaleString() ?? 0 }}
+              </n-tooltip>
+              <span class="stat-divider">|</span>
+              <n-tooltip trigger="hover">
+                <template #trigger>
+                  <span class="stat-item">
+                    <span class="stat-value">{{ formatCount(item.total_tokens) }}</span>
+                    <span class="stat-label">Tokens</span>
+                  </span>
+                </template>
+                {{ t("dashboard.promptTokens") }}: {{ item.prompt_tokens?.toLocaleString() ?? 0 }}<br>
+                {{ t("dashboard.completionTokens") }}: {{ item.completion_tokens?.toLocaleString() ?? 0 }}<br>
+                {{ t("dashboard.totalTokens") }}: {{ item.total_tokens?.toLocaleString() ?? 0 }}
+              </n-tooltip>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <n-empty v-else-if="hasStats" :description="t('dashboard.noModelData')" />
-    <div v-else class="model-usage-loading">{{ t("common.loading") }}</div>
+      <n-empty v-else-if="hasStats" :description="t('dashboard.noModelData')" />
+      <div v-else class="model-usage-loading">{{ t("common.loading") }}</div>
+    </n-spin>
   </n-card>
 </template>
 
@@ -127,67 +108,6 @@ const getDisplayName = (item: ModelUsageItem) => {
   align-items: center;
   gap: 16px;
   margin-bottom: 16px;
-}
-
-.header-controls {
-  display: flex;
-  align-items: center;
-}
-
-.cf-toggle-container {
-  display: flex;
-  align-items: center;
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  background: var(--bg-tertiary);
-  padding: 4px;
-  gap: 6px;
-}
-
-:root.dark .cf-toggle-container {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--border-color);
-}
-
-.cf-toggle-btn {
-  padding: 6px 14px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  border-radius: 999px;
-  transition: all 0.2s ease;
-  font-weight: 600;
-}
-
-.cf-toggle-btn:hover {
-  color: var(--text-primary);
-  background: rgba(0, 0, 0, 0.04);
-}
-
-:root.dark .cf-toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.cf-toggle-btn.active {
-  background: var(--card-bg-solid);
-  color: var(--text-primary);
-  font-weight: 600;
-  box-shadow: var(--shadow-sm);
-}
-
-:root.dark .cf-toggle-btn.active {
-  background: rgba(255, 255, 255, 0.18);
-  color: var(--text-primary);
-}
-
-.cf-divider {
-  display: none;
-}
-
-:root.dark .cf-divider {
-  background: rgba(255, 255, 255, 0.2);
 }
 
 .model-usage-title {

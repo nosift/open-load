@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import type { DashboardStatsResponse } from "@/types/models";
-import { NCard, NGrid, NGridItem } from "naive-ui";
-import { computed, ref } from "vue";
+import { NCard, NGrid, NGridItem, NSpin } from "naive-ui";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
 interface Props {
   stats: DashboardStatsResponse | null;
+  loading?: boolean;
 }
 
 const props = defineProps<Props>();
-
-const range = ref<"24h" | "7d">("24h");
 
 const tokenStats = computed(() => props.stats?.token_stats);
 
@@ -30,99 +29,72 @@ const formatTokens = (value: number | undefined) => {
   return value.toString();
 };
 
-const promptTokens = computed(() =>
-  range.value === "24h"
-    ? tokenStats.value?.prompt_tokens_24h
-    : tokenStats.value?.prompt_tokens_7d
-);
-
-const completionTokens = computed(() =>
-  range.value === "24h"
-    ? tokenStats.value?.completion_tokens_24h
-    : tokenStats.value?.completion_tokens_7d
-);
-
-const totalTokens = computed(() =>
-  range.value === "24h"
-    ? tokenStats.value?.total_tokens_24h
-    : tokenStats.value?.total_tokens_7d
-);
+// 使用选定日期范围的数据 (24h 字段现在代表选定范围)
+const promptTokens = computed(() => tokenStats.value?.prompt_tokens_24h);
+const completionTokens = computed(() => tokenStats.value?.completion_tokens_24h);
+const totalTokens = computed(() => tokenStats.value?.total_tokens_24h);
 </script>
 
 <template>
   <n-card :bordered="false" class="token-stats-card">
-    <div class="token-stats-header">
-      <div>
-        <div class="token-stats-title">{{ t("dashboard.tokenUsage") }}</div>
-        <div class="token-stats-subtitle">{{ t("dashboard.tokenStatistics") }}</div>
-      </div>
-      <div class="header-controls">
-        <div class="cf-toggle-container">
-          <button
-            class="cf-toggle-btn"
-            :class="{ active: range === '24h' }"
-            @click="range = '24h'"
-          >
-            {{ t("dashboard.modelUsage24h") }}
-          </button>
-          <div class="cf-divider"></div>
-          <button
-            class="cf-toggle-btn"
-            :class="{ active: range === '7d' }"
-            @click="range = '7d'"
-          >
-            {{ t("dashboard.modelUsage7d") }}
-          </button>
+    <n-spin :show="loading">
+      <div class="token-stats-header">
+        <div>
+          <div class="token-stats-title">{{ t("dashboard.tokenUsage") }}</div>
+          <div class="token-stats-subtitle">{{ t("dashboard.tokenStatistics") }}</div>
+        </div>
+        <div class="header-controls">
+          <slot name="header-extra"></slot>
         </div>
       </div>
-    </div>
 
-    <n-grid cols="3" :x-gap="16" :y-gap="16">
-      <n-grid-item>
-        <div class="token-stat-item">
-          <div class="token-stat-icon prompt-icon">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" fill="none" />
-              <path d="M2 17l10 5 10-5" fill="none" />
-              <path d="M2 12l10 5 10-5" fill="none" />
-            </svg>
+      <n-grid cols="3" :x-gap="16" :y-gap="16">
+        <n-grid-item>
+          <div class="token-stat-item">
+            <div class="token-stat-icon prompt-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" fill="none" />
+                <path d="M2 17l10 5 10-5" fill="none" />
+                <path d="M2 12l10 5 10-5" fill="none" />
+              </svg>
+            </div>
+            <div class="token-stat-info">
+              <div class="token-stat-value">{{ formatTokens(promptTokens) }}</div>
+              <div class="token-stat-label">{{ t("dashboard.promptTokens") }}</div>
+            </div>
           </div>
-          <div class="token-stat-info">
-            <div class="token-stat-value">{{ formatTokens(promptTokens) }}</div>
-            <div class="token-stat-label">{{ t("dashboard.promptTokens") }}</div>
-          </div>
-        </div>
-      </n-grid-item>
+        </n-grid-item>
 
-      <n-grid-item>
-        <div class="token-stat-item">
-          <div class="token-stat-icon completion-icon">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="none" />
-            </svg>
+        <n-grid-item>
+          <div class="token-stat-item">
+            <div class="token-stat-icon completion-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="none" />
+              </svg>
+            </div>
+            <div class="token-stat-info">
+              <div class="token-stat-value">{{ formatTokens(completionTokens) }}</div>
+              <div class="token-stat-label">{{ t("dashboard.completionTokens") }}</div>
+            </div>
           </div>
-          <div class="token-stat-info">
-            <div class="token-stat-value">{{ formatTokens(completionTokens) }}</div>
-            <div class="token-stat-label">{{ t("dashboard.completionTokens") }}</div>
-          </div>
-        </div>
-      </n-grid-item>
+        </n-grid-item>
 
-      <n-grid-item>
-        <div class="token-stat-item">
-          <div class="token-stat-icon total-icon">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="12" r="10" fill="none" />
-              <path d="M12 6v6l4 2" fill="none" />
-            </svg>
+        <n-grid-item>
+          <div class="token-stat-item">
+            <div class="token-stat-icon total-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" fill="none" />
+                <path d="M12 6v6l4 2" fill="none" />
+              </svg>
+            </div>
+            <div class="token-stat-info">
+              <div class="token-stat-value">{{ formatTokens(totalTokens) }}</div>
+              <div class="token-stat-label">{{ t("dashboard.totalTokens") }}</div>
+            </div>
           </div>
-          <div class="token-stat-info">
-            <div class="token-stat-value">{{ formatTokens(totalTokens) }}</div>
-            <div class="token-stat-label">{{ t("dashboard.totalTokens") }}</div>
-          </div>
-        </div>
-      </n-grid-item>
-    </n-grid>
+        </n-grid-item>
+      </n-grid>
+    </n-spin>
   </n-card>
 </template>
 
@@ -146,58 +118,6 @@ const totalTokens = computed(() =>
 .header-controls {
   display: flex;
   align-items: center;
-}
-
-.cf-toggle-container {
-  display: flex;
-  align-items: center;
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  background: var(--bg-tertiary);
-  padding: 4px;
-  gap: 6px;
-}
-
-:root.dark .cf-toggle-container {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--border-color);
-}
-
-.cf-toggle-btn {
-  padding: 6px 14px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  border-radius: 999px;
-  transition: all 0.2s ease;
-  font-weight: 600;
-}
-
-.cf-toggle-btn:hover {
-  color: var(--text-primary);
-  background: rgba(0, 0, 0, 0.04);
-}
-
-:root.dark .cf-toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.cf-toggle-btn.active {
-  background: var(--card-bg-solid);
-  color: var(--text-primary);
-  font-weight: 600;
-  box-shadow: var(--shadow-sm);
-}
-
-:root.dark .cf-toggle-btn.active {
-  background: rgba(255, 255, 255, 0.18);
-  color: var(--text-primary);
-}
-
-.cf-divider {
-  display: none;
 }
 
 .token-stats-title {
